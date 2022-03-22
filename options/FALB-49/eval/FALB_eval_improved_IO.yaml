@@ -1,0 +1,6 @@
+test_dataset:
+  params:
+    full_size: null
+
+_test: options/_base/datasets/kitti_test_384_improved.yaml
+_base: options/FALB-49/FALB-49.yaml

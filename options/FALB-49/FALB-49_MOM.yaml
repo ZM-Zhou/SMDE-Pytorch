@@ -1,0 +1,50 @@
+model:
+  params:
+    mom_module: True
+
+loss:
+  types:
+    - type: SmoothLoss
+      rate: 0.0016
+      name: smooth
+      args:
+        pred_n: disp_{}
+        image_n: color_{}
+        gamma_rate: 2
+        more_kernel: True
+        gray_img: True
+    - type: PhotoLoss
+      rate: 1
+      mask: ff_mask_{}
+      name: depth-ff
+      args:
+        pred_n: depth_{}
+        target_n: depth_ff_{}
+        l1_rate: 1
+
+visual:
+  type:
+    color_s: img
+    disp_s: disp
+    disp_f_s: disp
+    synth_img_s: img
+    mask_s: mask
+    depth-ff/s: error_heat
+    
+    color_o: img
+    disp_o: disp
+    disp_f_o: disp
+    synth_img_o: img
+    mask_o: mask
+    depth-ff/o: error_heat
+  shape: [[color_s, color_o],
+          [disp_s, disp_o],
+          [disp_f_s, disp_f_o],
+          [synth_img_o, synth_img_s],
+          [mask_s, mask_o],
+          [depth-ff/s, depth-ff/o]]
+
+pred_size: [375, 1242]
+pred_norm: [0.411, 0.432, 0.45]
+
+_base: options/FALB-49/FALB-49.yaml

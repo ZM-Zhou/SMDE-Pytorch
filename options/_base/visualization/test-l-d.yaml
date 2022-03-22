@@ -1,0 +1,5 @@
+visual:
+  type:
+    color_s: img
+    pp_disp: disp
+  shape: [[color_s, pp_disp]]

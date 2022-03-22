@@ -1,0 +1,8 @@
+_dataset:
+  type: KITTIColorDepthDataset
+  params:
+    split_file: data_splits/kitti/train_list.txt
+    flip_mode: k
+    full_size: [192, 640]
+    is_fixK: True
+    is_KTmatrix: True
