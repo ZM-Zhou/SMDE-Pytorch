@@ -2,7 +2,7 @@
 .vscode
 
 train_log/*
-convert_models/*
+convert_models*
 
 local_options/*
 local_tools/*

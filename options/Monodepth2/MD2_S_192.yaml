@@ -2,10 +2,6 @@ train_dataset:
   params:
     output_frame: ['o']
 
-test_dataset:
-  params:
-    read_jpg: False # set if using trained model
-
 model:
   type: Monodepth2
   params:

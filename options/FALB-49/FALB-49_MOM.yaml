@@ -22,6 +22,9 @@ loss:
         target_n: depth_ff_{}
         l1_rate: 1
 
+pred_size: [375, 1242]
+pred_norm: [0.411, 0.432, 0.45]
+
 visual:
   type:
     color_s: img
@@ -43,8 +46,5 @@ visual:
           [synth_img_o, synth_img_s],
           [mask_s, mask_o],
           [depth-ff/s, depth-ff/o]]
-
-pred_size: [375, 1242]
-pred_norm: [0.411, 0.432, 0.45]
 
 _base: options/FALB-49/FALB-49.yaml

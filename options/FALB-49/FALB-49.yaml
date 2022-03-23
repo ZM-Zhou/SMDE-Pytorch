@@ -53,9 +53,6 @@ loss:
         more_kernel: True
         gray_img: True
 
-_train: options/_base/datasets/kitti_train_384rc.yaml
-_val: options/_base/datasets/kitti_test_384.yaml
-
 pred_size: [375, 1242]
 pred_norm: [0.411, 0.432, 0.45]
 
@@ -64,4 +61,7 @@ visual:
     color_s: img
     disp_s: disp
   shape: [[color_s, disp_s]]
+
+_train: options/_base/datasets/kitti_train_384rc.yaml
+_val: options/_base/datasets/kitti_test_384.yaml
 
