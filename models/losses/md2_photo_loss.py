@@ -69,7 +69,7 @@ class MD2_PhotoLoss(nn.Module):
                 ident_loss_maps.append(ident_map)
         
         if self.automask:
-            ident_maps = loss_maps = torch.cat(ident_loss_maps, dim=1)
+            ident_maps = torch.cat(ident_loss_maps, dim=1)
             ident_maps += torch.randn(ident_maps.shape).to(self.device) * 0.00001
             if self.minproj:
                 loss_maps = torch.cat([ident_maps] + pred_loss_maps, dim=1)

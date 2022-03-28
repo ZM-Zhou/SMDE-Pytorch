@@ -1,0 +1,47 @@
+train_dataset:
+  params:
+    is_fixK: v2
+    output_frame: ['o']
+    normalize_params: [0, 0, 0]
+    full_size: [320, 1024]
+
+val_dataset:
+  params:
+    is_fixK: v2
+    normalize_params: [0, 0, 0]
+    full_size: [320, 1024]
+
+model:
+  type: EPCDepth_Net
+
+loss:
+  types:
+    - type: PhotoLoss
+      rate: 1
+      name: photo_l1
+      args:
+        pred_n: synth_4
+        target_n: color_s
+        l1_rate: 1
+        other_side: True
+    - type: SmoothLoss
+      rate: 0.001
+      name: photo_l1
+      args:
+        pred_n: disp_4
+        image_n: color_s
+        relative_smo: True
+
+pred_size: [320, 1024]
+pred_norm: [0, 0, 0]
+
+visual:
+  type:
+    color_s: img
+    disp_s: disp
+  shape: [[color_s, disp_s]]
+
+_train: options/_base/datasets/kitti_train_320.yaml
+_val: options/_base/datasets/kitti_test_320.yaml
+
+

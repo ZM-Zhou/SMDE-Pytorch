@@ -2,6 +2,10 @@ train_dataset:
   params:
     full_size: [320, 1024]
 
+val_dataset:
+  params:
+    full_size: [320, 1024]
+
 model:
   params:
     image_size: [320, 1024]

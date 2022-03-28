@@ -68,6 +68,7 @@ class Monodepth2(Base_of_Network):
                 outputs.update(self._get_poses())
             for scale in range(4):
                 disp = torch.sigmoid(disp_outputs[scale])
+                outputs['disp_raw_{}_{}'.format(scale, train_side)] = disp
                 disp = F.interpolate(disp,
                                      self.image_size,
                                      mode='bilinear',

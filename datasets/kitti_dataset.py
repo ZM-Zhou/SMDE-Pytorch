@@ -52,7 +52,8 @@ class KITTIColorDepthDataset(data.Dataset):
             is_depthhints=False,
             improved_test=False,
             stereo_test=False,
-            read_jpg=False):
+            read_jpg=False,
+            multi_out_scale=None):
         super().__init__()
         self.init_opts = locals()
 
@@ -70,6 +71,7 @@ class KITTIColorDepthDataset(data.Dataset):
         self.improved_test = improved_test
         self.stereo_test = stereo_test
         self.read_jpg = read_jpg
+        self.multi_out_scale = multi_out_scale
         self.file_list = self._get_file_list(split_file)
 
         # Initialize transforms
@@ -83,11 +85,6 @@ class KITTIColorDepthDataset(data.Dataset):
             else:
                 self.crop = NoneTransform()
                 self.canny = None
-            # just resize
-            if self.full_size is not None:
-                self.fix_resize = tf.Resize(full_size,
-                                            interpolation=Image.ANTIALIAS)
-
         else:
             if self.full_size is not None:
                 self.color_resize = tf.Resize(full_size,
@@ -271,6 +268,13 @@ class KITTIColorDepthDataset(data.Dataset):
                 random_size = tuple(int(s * scale_factor) for s in img_size)
                 self.color_resize = tf.Resize(random_size,
                                               interpolation=Image.ANTIALIAS)
+                if self.multi_out_scale is not None:
+                    self.multi_resize = {}
+                    for scale in self.multi_out_scale:
+                        s = 2 ** scale
+                        self.multi_resize[scale] = tf.Resize([x // s for x in img_size],
+                                                         interpolation=Image.ANTIALIAS)
+                
                 self.depth_resize = tf.Resize(random_size,
                                               interpolation=Image.NEAREST)
             else:
@@ -303,6 +307,18 @@ class KITTIColorDepthDataset(data.Dataset):
                         self.normalize(img)
                     inputs[key.replace('_raw', '_aug')] =\
                         self.normalize(aug_img)
+                    if self.multi_out_scale is not None:
+                        for scale in self.multi_out_scale:
+                            scale_img = self.multi_resize[scale](raw_img)
+                            scale_img = self.to_tensor(scale_img)
+                            scale_aug_img = do_fal_color_aug(scale_img,
+                                                             gamma_param,
+                                                             bright_param,
+                                                             cbright_param)
+                            inputs[key.replace('_raw', '_{}'.format(scale))] =\
+                                self.normalize(scale_img)
+                            inputs[key.replace('_raw', '_{}_aug'.format(scale))] =\
+                                self.normalize(scale_aug_img)
 
                 elif 'depth' in key:
                     # depth will be changed when resize

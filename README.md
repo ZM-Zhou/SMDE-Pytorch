@@ -19,10 +19,10 @@ conda activate pytorch170cu11
 ## Method Zoo
 |Method|Test|Train|Paper|Code|
 |------|----|-----|-----|----|
-|[Monodepth2](options/Monodepth2) (Stereo)| ✔| ✔| [Link](https://arxiv.org/abs/1806.01260)| [Link](https://github.com/nianticlabs/monodepth2)|
-|[Monodepth2](options/Monodepth2) (Mono)| ✔ | | [Link](https://arxiv.org/abs/1806.01260)| [Link](https://github.com/nianticlabs/monodepth2)|
+|[Monodepth2](options/Monodepth2)| ✔| ✔| [Link](https://arxiv.org/abs/1806.01260)| [Link](https://github.com/nianticlabs/monodepth2)|
 |[FAL-Net](options/FALB-49) | ✔| ✔ | [Link](https://proceedings.neurips.cc/paper/2020/hash/951124d4a093eeae83d9726a20295498-Abstract.html)| [Link](https://github.com/JuanLuisGonzalez/FAL_net)|
 |[DepthHints](options/DepthHints) | ✔| | [Link](https://arxiv.org/abs/1909.09051)| [Link](https://github.com/nianticlabs/depth-hints)|
+|[EPCDepth](options/EPCDepth) | ✔| | [Link](https://arxiv.org/abs/2109.12484)| [Link](https://github.com/prstrive/EPCDepth)|
 
 
 * `Test` : You could predict depths with their pretrained models provided by their official implementations. We have tested their performances and more details are given on their pages (click their names in the table).
@@ -31,18 +31,20 @@ conda activate pytorch170cu11
 - [x] Monodepth2 (ICCV 2019)
 - [x] FAL-Net (NeurIPS 2020)
 - [x] DepthHints (ICCV 2019)
-- [ ] EPCDepth (ICCV 2021)
+- [X] EPCDepth (ICCV 2021)
 - [ ] Edge-of-depth (CVPR 2020)
 - [ ] PackNet (CVPR 2020)
+- [ ] Check the post-process
 
 ## Evaluation Results
 We give the performances of the methods on **the KITTI raw test set** (an outdoor dataset) for helping you choose the model. More pretrained models are given on their pages (click their names in the above table).
 |Method|Info.|Sup|Trained|Abs Rel.|Abs Sq.|RMSE|RMSElog|A1|
 |------|-----|---|-----|--------|-------|----|-------|--|
-|Monodepth2|Res18+192x640|Mono|[OI](https://pan.baidu.com/s/18qPJRbrAHXV1pYtc0Bb8Yg)|0.115|0.909|4.866|0.193|0.877|
+|Monodepth2|Res18+192x640|Mono|[Trained](https://pan.baidu.com/s/154ib4uD1Gp-ly4OSKHyTNw)|0.112|0.856|4.774|0.190|0.880|
 |Monodepth2|Res18+320x1024|Stereo|[Trained](https://pan.baidu.com/s/1Je1yhuYoa25eTUbS57kj4A)|0.106|0.798|4.700|0.202|0.871|
 |FAL-NetB|N=49+375x1242|Stereo|[Trained](https://pan.baidu.com/s/1PhUJ_4s0nm41a49viZRczg)|0.099|0.625|4.197|0.182|0.885|
 |DepthHints|Res50+320x1024|Stereo|[OI](https://pan.baidu.com/s/1OPesveOI0us8rVEwal-pGg)|0.097|0.737|4.448|0.186|0.889|
+|EPCDepth|Res50+320x1024|Stereo|[OI](https://pan.baidu.com/s/1X4TWog23u2Wk6m6H_mbApA)|0.096|0.684|4.278|0.184|0.889|
 
 * `OI` means that the results are predicted with the models got from their Official Implementations.
 * `Trained` means that the results are predicted with the models trained with this repository.
@@ -77,5 +79,6 @@ coming soon
 [Monodepth2](https://github.com/nianticlabs/monodepth2)  
 [FAL-Net](https://github.com/JuanLuisGonzalez/FAL_net)  
 [DepthHints](https://github.com/nianticlabs/depth-hints)  
+[EPCDepth](https://github.com/prstrive/EPCDepth)  
 [ApolloScape Dataset](http://apolloscape.auto/index.html)  
 [KITTI Dataset](http://www.cvlibs.net/datasets/kitti/index.php)  
