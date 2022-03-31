@@ -43,6 +43,7 @@ class KITTIColorDepthDataset(data.Dataset):
             split_file,
             full_size=None,
             patch_size=None,
+            random_resize=True,
             is_KTmatrix=False,
             is_fixK=False,
             normalize_params=[0.411, 0.432, 0.45],
@@ -62,6 +63,7 @@ class KITTIColorDepthDataset(data.Dataset):
         self.split_file = split_file
         self.full_size = full_size
         self.patch_size = patch_size
+        self.random_resize = random_resize
         self.is_KTmatrix = is_KTmatrix
         self.is_fixK = is_fixK
         self.output_frame = output_frame
@@ -263,16 +265,20 @@ class KITTIColorDepthDataset(data.Dataset):
                 _size = inputs['color_s_raw'].size  # (w, h)
                 img_size = (_size[1], _size[0])
             scale_factor = random.uniform(0.75, 1.5)\
-                if self.patch_size is not None else 1
+                if self.patch_size is not None and self.random_resize else 1
             if scale_factor != 1 or self.full_size is not None:
                 random_size = tuple(int(s * scale_factor) for s in img_size)
                 self.color_resize = tf.Resize(random_size,
                                               interpolation=Image.ANTIALIAS)
                 if self.multi_out_scale is not None:
                     self.multi_resize = {}
+                    if self.patch_size is not None:
+                        base_size = self.patch_size
+                    else:
+                        base_size = img_size
                     for scale in self.multi_out_scale:
                         s = 2 ** scale
-                        self.multi_resize[scale] = tf.Resize([x // s for x in img_size],
+                        self.multi_resize[scale] = tf.Resize([x // s for x in base_size],
                                                          interpolation=Image.ANTIALIAS)
                 
                 self.depth_resize = tf.Resize(random_size,
@@ -299,8 +305,8 @@ class KITTIColorDepthDataset(data.Dataset):
                     raw_img = inputs[key]
                     if is_flip:
                         raw_img = raw_img.transpose(Image.FLIP_LEFT_RIGHT)
-                    img = self.crop(self.color_resize(raw_img), crop_params)
-                    img = self.to_tensor(img)
+                    raw_img = self.crop(self.color_resize(raw_img), crop_params)
+                    img = self.to_tensor(raw_img)
                     aug_img = do_fal_color_aug(img, gamma_param, bright_param,
                                                cbright_param)
                     inputs[key.replace('_raw', '')] =\

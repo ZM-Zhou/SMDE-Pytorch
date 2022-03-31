@@ -1,0 +1,8 @@
+test_dataset:
+  params:
+    normalize_params: [0, 0, 0]
+    read_jpg: False # set if test downloaded model
+    is_fixK: v2
+
+_test: options/_base/datasets/kitti_test_320_improved.yaml
+_base: options/DepthHints/DepthHints_S_320.yaml

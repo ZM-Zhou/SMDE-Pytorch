@@ -4,8 +4,7 @@
 train_log/*
 convert_models*
 
-local_options/*
-local_tools/*
+local*/*
 
 run*.sh
 

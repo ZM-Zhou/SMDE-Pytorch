@@ -3,6 +3,6 @@ _dataset:
   params:
     split_file: data_splits/kitti/train_list.txt
     flip_mode: k
-    full_size: [329, 1024]
+    full_size: [320, 1024]
     is_fixK: True
     is_KTmatrix: True

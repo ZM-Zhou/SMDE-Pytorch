@@ -1,90 +1,114 @@
 train_dataset:
   params:
+    is_fixK: v2
+    output_frame: ['o']
+    normalize_params: [0, 0, 0]
+    multi_out_scale: [3,2,1]
+    is_depthhints: True
+
+val_dataset:
+  params:
+    is_fixK: v2
     normalize_params: [0, 0, 0]
 
 model:
   type: Monodepth2
   params:
+    image_size: [320, 1024]
     encoder_layer: 50
     data_mode: ["o"]
+    use_depthhints: True
 
 loss:
   types:
-    - type: MD2_PhotoLoss
+    - type: DepthHints_PhotoLoss
       rate: 1
       name: photo_auto_min-0
       args:
         preds_n: ['proj_img_o_0_{}']
         idents_n: [color_o]
+        hints_n: proj_img_hints_{}
+        hints_depth: hints_{}
+        pred_depth: depth_0_{}
+
         target_n: color_{}
-    - type: MD2_PhotoLoss
+    - type: DepthHints_PhotoLoss
       rate: 1
       name: photo_auto_min-1
       args:
         preds_n: ['proj_img_o_1_{}']
         idents_n: [color_o]
+        hints_n: proj_img_hints_{}
+        hints_depth: hints_{}
+        pred_depth: depth_1_{}
         target_n: color_{}
-    - type: MD2_PhotoLoss
+    - type: DepthHints_PhotoLoss
       rate: 1
       name: photo_auto_min-2
       args:
         preds_n: ['proj_img_o_2_{}']
         idents_n: [color_o]
+        hints_n: proj_img_hints_{}
+        hints_depth: hints_{}
+        pred_depth: depth_2_{}
         target_n: color_{}
-    - type: MD2_PhotoLoss
+    - type: DepthHints_PhotoLoss
       rate: 1
       name: photo_auto_min-3
       args:
         preds_n: ['proj_img_o_3_{}']
         idents_n: [color_o]
+        hints_n: proj_img_hints_{}
+        hints_depth: hints_{}
+        pred_depth: depth_3_{}
         target_n: color_{}
 
-    - type: SmoothLoss
-      rate: 0.001
-      name: smooth-0
-      args:
-        pred_n: disp_0_{}
-        image_n: color_{}
-        relative_smo: True
-    - type: SmoothLoss
-      rate: 0.0005
-      name: smooth-1
-      args:
-        pred_n: disp_1_{}
-        image_n: color_{}
-        relative_smo: True
-    - type: SmoothLoss
-      rate: 0.00025
-      name: smooth-2
-      args:
-        pred_n: disp_2_{}
-        image_n: color_{}
-        relative_smo: True
-    - type: SmoothLoss
-      rate: 0.000125
-      name: smooth-3
-      args:
-        pred_n: disp_3_{}
-        image_n: color_{}
-        relative_smo: True
+    # - type: SmoothLoss
+    #   rate: 0.001
+    #   name: smooth-0
+    #   args:
+    #     pred_n: disp_0_{}
+    #     image_n: color_{}
+    #     relative_smo: True
+    # - type: SmoothLoss
+    #   rate: 0.0005
+    #   name: smooth-1
+    #   args:
+    #     pred_n: disp_raw_1_{}
+    #     image_n: color_{}_1
+    #     relative_smo: True
+    # - type: SmoothLoss
+    #   rate: 0.00025
+    #   name: smooth-2
+    #   args:
+    #     pred_n: disp_raw_2_{}
+    #     image_n: color_{}_2
+    #     relative_smo: True
+    # - type: SmoothLoss
+    #   rate: 0.000125
+    #   name: smooth-3
+    #   args:
+    #     pred_n: disp_raw_3_{}
+    #     image_n: color_{}_3
+    #     relative_smo: True
+
+pred_size: [320, 1024]
+pred_norm: [0, 0, 0]
 
 visual:
   type:
     color_s: img
-    color_o: img
     disp_0_s: disp
     photo_auto_min-0/s: error_heat
     proj_img_o_0_s: img
+    proj_img_hints_s: img
     disp_3_s: disp
     disp_2_s: disp
     disp_1_s: disp
   shape: [[color_s, disp_0_s],
           [disp_1_s, disp_2_s],
           [photo_auto_min-0/s, disp_3_s],
-          [proj_img_o_0_s, color_o]]
-
-pred_size: [320, 1024]
-pred_norm: [0, 0, 0]
+          [proj_img_o_0_s, proj_img_hints_s]]
 
 _train: options/_base/datasets/kitti_train_320.yaml
 _val: options/_base/datasets/kitti_test_320.yaml

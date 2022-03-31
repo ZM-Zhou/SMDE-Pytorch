@@ -21,7 +21,7 @@ conda activate pytorch170cu11
 |------|----|-----|-----|----|
 |[Monodepth2](options/Monodepth2)| ✔| ✔| [Link](https://arxiv.org/abs/1806.01260)| [Link](https://github.com/nianticlabs/monodepth2)|
 |[FAL-Net](options/FALB-49) | ✔| ✔ | [Link](https://proceedings.neurips.cc/paper/2020/hash/951124d4a093eeae83d9726a20295498-Abstract.html)| [Link](https://github.com/JuanLuisGonzalez/FAL_net)|
-|[DepthHints](options/DepthHints) | ✔| | [Link](https://arxiv.org/abs/1909.09051)| [Link](https://github.com/nianticlabs/depth-hints)|
+|[DepthHints](options/DepthHints) | ✔|✔ | [Link](https://arxiv.org/abs/1909.09051)| [Link](https://github.com/nianticlabs/depth-hints)|
 |[EPCDepth](options/EPCDepth) | ✔| | [Link](https://arxiv.org/abs/2109.12484)| [Link](https://github.com/prstrive/EPCDepth)|
 
 
@@ -40,10 +40,10 @@ conda activate pytorch170cu11
 We give the performances of the methods on **the KITTI raw test set** (an outdoor dataset) for helping you choose the model. More pretrained models are given on their pages (click their names in the above table).
 |Method|Info.|Sup|Trained|Abs Rel.|Abs Sq.|RMSE|RMSElog|A1|
 |------|-----|---|-----|--------|-------|----|-------|--|
-|Monodepth2|Res18+192x640|Mono|[Trained](https://pan.baidu.com/s/154ib4uD1Gp-ly4OSKHyTNw)|0.112|0.856|4.774|0.190|0.880|
+|Monodepth2|Res18+192x640|Mono|[Trained](https://pan.baidu.com/s/1eTZa2-5Kd9TJNJOJvDzetg)|0.113|0.858|4.753|0.190|0.879|
 |Monodepth2|Res18+320x1024|Stereo|[Trained](https://pan.baidu.com/s/1Je1yhuYoa25eTUbS57kj4A)|0.106|0.798|4.700|0.202|0.871|
 |FAL-NetB|N=49+375x1242|Stereo|[Trained](https://pan.baidu.com/s/1PhUJ_4s0nm41a49viZRczg)|0.099|0.625|4.197|0.182|0.885|
-|DepthHints|Res50+320x1024|Stereo|[OI](https://pan.baidu.com/s/1OPesveOI0us8rVEwal-pGg)|0.097|0.737|4.448|0.186|0.889|
+|DepthHints|Res50+320x1024|Stereo|[Trained](https://pan.baidu.com/s/12xv0IY_hcO1YtsEZJ2Vuog)|0.094|0.680|4.333|0.181|0.894|
 |EPCDepth|Res50+320x1024|Stereo|[OI](https://pan.baidu.com/s/1X4TWog23u2Wk6m6H_mbApA)|0.096|0.684|4.278|0.184|0.889|
 
 * `OI` means that the results are predicted with the models got from their Official Implementations.

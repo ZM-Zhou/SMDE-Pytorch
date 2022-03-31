@@ -19,6 +19,7 @@ class Monodepth2(Base_of_Network):
             max_depth=100,
             image_size=[192, 640],
             data_mode=[1, -1],  # ["o"]
+            use_depthhints=False
     ):
         self.init_opts = locals()
 
@@ -26,6 +27,7 @@ class Monodepth2(Base_of_Network):
         self.max_depth = max_depth
         self.image_size = image_size
         self.data_mode = data_mode
+        self.use_depthhints = use_depthhints
 
         self.mono_train = (1 in data_mode or -1 in data_mode)
 
@@ -75,6 +77,8 @@ class Monodepth2(Base_of_Network):
                                      align_corners=False)
                 outputs['disp_{}_{}'.format(scale, train_side)] = disp
                 _, depth = self._disp2depth(disp)
+                if self.use_depthhints:
+                    outputs['depth_{}_{}'.format(scale, train_side)] = depth * 5.4
                 for id_frame in self.data_mode:
                     source_img = self.inputs[('color_{}'.format(id_frame))]
                     if id_frame != 'o':
@@ -86,6 +90,15 @@ class Monodepth2(Base_of_Network):
                                                          source_img, False)
                     outputs['proj_img_{}_{}_{}'.format(
                         id_frame, scale, train_side)] = projected_img
+            if self.use_depthhints:
+                source_img = self.inputs['color_o']
+                depth = inputs['hints_{}'.format(train_side)]
+                T = inputs['T'].clone()
+                projected_img, _ = self.projector[0](depth, inv_K, T, K,
+                                                     source_img, False)
+                outputs['proj_img_hints_{}'.format(
+                        train_side)] = projected_img
+
             self._compute_losses(outputs, train_side, losses)
             return outputs, losses
 
