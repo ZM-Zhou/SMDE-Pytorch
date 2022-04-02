@@ -45,22 +45,26 @@ def _update_dic(dic, base_dic):
             for target_item in val:
                 is_exist = False
                 is_losses = True
-                for list_idx, list_item in enumerate(base_dic[key]):
-                    if isinstance(list_item, dict):
-                        # update a existing loss term
-                        if list_item['name'] == target_item['name']:
-                            base_dic[key][list_idx] =\
-                                _update_dic(target_item,
-                                            base_dic[key][list_idx])
-                            is_exist = True
-                    else:
-                        # this flag is used to record the options
-                        # in list format, but not a loss term.
-                        is_losses = False
-                        break
-                if isinstance(list_item, dict) and not is_exist:
-                    # add a new loss term
-                    base_dic[key].append(target_item)
+                if not isinstance(base_dic[key], list):
+                    is_losses = False
+                else:
+                    # search all the existing losses
+                    for list_idx, list_item in enumerate(base_dic[key]):
+                        if isinstance(list_item, dict):
+                            # update a existing loss term
+                            if list_item['name'] == target_item['name']:
+                                base_dic[key][list_idx] =\
+                                    _update_dic(target_item,
+                                                base_dic[key][list_idx])
+                                is_exist = True
+                        else:
+                            # this flag is used to record the options
+                            # in list format, but not a loss term.
+                            is_losses = False
+                            break
+                    # add a new loss term if the loss is not exist
+                    if isinstance(list_item, dict) and not is_exist:
+                        base_dic[key].append(target_item)
                 if not is_losses:
                     base_dic[key] = val
                     break

@@ -40,13 +40,13 @@ conda activate pytorch170cu11
 We give the performances of the methods on **the KITTI raw test set** (an outdoor dataset) for helping you choose the model. More pretrained models are given on their pages (click their names in the above table).
 |Method|Info.|Sup|Trained|Abs Rel.|Abs Sq.|RMSE|RMSElog|A1|
 |------|-----|---|-----|--------|-------|----|-------|--|
-|Monodepth2|Res18+192x640|Mono|[Trained](https://pan.baidu.com/s/1eTZa2-5Kd9TJNJOJvDzetg)|0.113|0.858|4.753|0.190|0.879|
-|Monodepth2|Res18+320x1024|Stereo|[Trained](https://pan.baidu.com/s/1Je1yhuYoa25eTUbS57kj4A)|0.106|0.798|4.700|0.202|0.871|
+|Monodepth2|Res18+320x1024|Mono|[Trained]()|0.109|0.797|4.533|0.184|0.888|
+|Monodepth2|Res18+320x1024|Stereo|[Trained](https://pan.baidu.com/s/1Kj9HOo15murscIsOchMEUA)|0.104|0.824|4.747|0.200|0.875|
 |FAL-NetB|N=49+375x1242|Stereo|[Trained](https://pan.baidu.com/s/1PhUJ_4s0nm41a49viZRczg)|0.099|0.625|4.197|0.182|0.885|
 |DepthHints|Res50+320x1024|Stereo|[Trained](https://pan.baidu.com/s/12xv0IY_hcO1YtsEZJ2Vuog)|0.094|0.680|4.333|0.181|0.894|
-|EPCDepth|Res50+320x1024|Stereo|[OI](https://pan.baidu.com/s/1X4TWog23u2Wk6m6H_mbApA)|0.096|0.684|4.278|0.184|0.889|
+|EPCDepth|Res50+320x1024|Stereo|[Official](https://pan.baidu.com/s/1X4TWog23u2Wk6m6H_mbApA)|0.096|0.684|4.278|0.184|0.889|
 
-* `OI` means that the results are predicted with the models got from their Official Implementations.
+* `Official` means that the results are predicted with the models got from their Official Implementations.
 * `Trained` means that the results are predicted with the models trained with this repository.
 * **code for all the download links is `smde`**
 

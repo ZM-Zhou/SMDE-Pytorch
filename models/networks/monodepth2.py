@@ -34,16 +34,16 @@ class Monodepth2(Base_of_Network):
         self.net_module = {}
         self.net_module['encoder'] = ResNet_Backbone(encoder_layer)
         if encoder_layer == 18:
-            dec_ch_num = [64, 64, 128, 256, 512]
+            enc_ch_num = [64, 64, 128, 256, 512]
         else:
-            dec_ch_num = [64, 256, 512, 1024, 2048]
-        self.net_module['decoder'] = UpSample_Layers(dec_ch_num)
+            enc_ch_num = [64, 256, 512, 1024, 2048]
+        self.net_module['decoder'] = UpSample_Layers(enc_ch_num)
 
         if self.mono_train:
             self.net_module['pose_encoder'] = ResNet_Backbone(encoder_layer,
                                                               in_ch=6)
             self.net_module['pose_decoder'] = PoseDecoder(
-                dec_ch_num, num_input_features=1, num_frames_to_predict_for=2)
+                enc_ch_num, num_input_features=1, num_frames_to_predict_for=2)
 
         self._networks = nn.ModuleList(list(self.net_module.values()))
 

@@ -2,6 +2,10 @@ model:
   params:
     mom_module: True
 
+val_dataset:
+  params:
+    full_size: null
+
 loss:
   types:
     - type: SmoothLoss

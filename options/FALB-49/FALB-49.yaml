@@ -4,6 +4,10 @@ train_dataset:
     is_KTmatrix: False
     flip_mode: img
 
+val_dataset:
+  params:
+    full_size: null
+
 model:
   type: FAL_NetB
   params:

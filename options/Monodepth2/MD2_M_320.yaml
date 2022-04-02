@@ -1,0 +1,16 @@
+train_dataset:
+  params:
+    full_size: [320, 1024]
+
+val_dataset:
+  params:
+    full_size: [320, 1024]
+
+model:
+  params:
+    image_size: [320, 1024]
+
+pred_size: [320, 1024]
+pred_norm: [0, 0, 0]
+
+_base: options/Monodepth2/MD2_M_192.yaml

@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from torchvision.models.vgg import vgg19
 
 from models.backbones.residualconv import Residual_Conv
+from models.backbones.resnet import ResNet_Backbone
 from models.base_net import Base_of_Network
 from models.decoders.upsample import UpSample_Layers
 from models.decoders.upsample_v2 import UpSample_Layers_v2
@@ -16,7 +17,10 @@ class FAL_NetB(Base_of_Network):
     def _initialize_model(
         self,
         out_num=49,
+        encoder='FALB',
         decoder='Upv2',
+        num_ch_dec = [64, 128, 256, 256, 256],
+        out_scales = [0],
         min_disp=2,
         max_disp=300,
         image_size=[192, 640],
@@ -25,7 +29,10 @@ class FAL_NetB(Base_of_Network):
     ):
         self.init_opts = locals()
         self.out_num = out_num
+        self.encoder = encoder
         self.decoder = decoder
+        self.num_ch_dec = num_ch_dec
+        self.out_scales = out_scales
         self.min_disp = min_disp
         self.max_disp = max_disp
         self.image_size = image_size
@@ -33,21 +40,32 @@ class FAL_NetB(Base_of_Network):
         self.raw_fal_arch = raw_fal_arch
 
         # Initialize architecture
-        num_ch_enc = [32, 64, 128, 256, 256, 256, 512]
-        num_ch_dec = [64, 128, 256, 256, 256]
         self.convblocks = {}
-
-        self.convblocks['enc'] = Residual_Conv(num_ch_enc=num_ch_enc,
-                                               input_flow=self.raw_fal_arch)
+        if self.encoder == 'FALB':
+            num_ch_enc = [32, 64, 128, 256, 256, 256, 512]
+            self.convblocks['enc'] = Residual_Conv(num_ch_enc=num_ch_enc,
+                                                   input_flow=self.raw_fal_arch)
+        elif 'Res' in self.encoder:
+            encoder_layer = int(self.encoder[3:])
+            self.convblocks['enc'] = ResNet_Backbone(encoder_layer)
+            if encoder_layer <= 34:
+                num_ch_enc = [64, 64, 128, 256, 512]
+            else:
+                num_ch_enc = [64, 256, 512, 1024, 2048]
+        
         if self.decoder == 'Upv2':
+            assert self.encoder == 'FALB',\
+                'Upv2 decoder must be used with FALB encoder'
             self.convblocks['dec'] = UpSample_Layers_v2(
                 num_ch_enc,
-                num_ch_dec,
+                self.num_ch_dec,
                 output_ch=out_num,
                 raw_fal_arch=self.raw_fal_arch)
         elif self.decoder == 'Upv1':
+            # When use Upv1 with FALB, please set
+            # num_ch_dec = [64, 64, 128, 256, 256, 256]
             self.convblocks['dec'] = UpSample_Layers(num_ch_enc,
-                                                     [64] + num_ch_dec,
+                                                     self.num_ch_dec,
                                                      output_ch=out_num,
                                                      out_scales=[0])
         self._networks = nn.ModuleList(list(self.convblocks.values()))
@@ -248,11 +266,11 @@ class FAL_NetB(Base_of_Network):
             flow = torch.ones(B, 1, H, W).type(input_img.type())
             flow[:, 0, :, :] = self.max_disp * flow[:, 0, :, :] / 100
             x = input_img
+            features = self.convblocks['enc'](x, flow)
         else:
-            x = input_img / 0.225
-            flow = None
+            x = input_img
+            features = self.convblocks['enc'](x)
 
-        features = self.convblocks['enc'](x, flow)
         out_volume = self.convblocks['dec'](features, input_img.shape)
         if side == 'o':
             out_volume = torch.flip(out_volume, dims=[3])
