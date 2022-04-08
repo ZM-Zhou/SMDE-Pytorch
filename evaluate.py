@@ -47,7 +47,7 @@ parser.add_argument('--visual_list',
                     help='list of images which should be visualized')
 parser.add_argument('--visual_opts',
                     dest='visual_opts',
-                    default='options/_base/visualization/test-l-d_gt-rel.yaml',
+                    default='options/_base/visualization/test-l-d.yaml',
                     help='the yaml file for visualization options')
 parser.add_argument('--save_visual',
                     action='store_true',
@@ -62,6 +62,11 @@ parser.add_argument('--extra_name',
                     default='',
                     help='save results with extera dir name')
 
+parser.add_argument('-fpp',
+                    '--simple_flip_post_process',
+                    action='store_true',
+                    default=False,
+                    help='Simple Flip Post-processing')
 parser.add_argument('-gpp',
                     '--godard_post_process',
                     action='store_true',
@@ -85,6 +90,8 @@ parser.add_argument('--precompute_path',
 
 opts = parser.parse_args()
 
+def flip_post_process_disparity(l_disp, r_disp):
+    return (l_disp + r_disp) / 2
 
 def batch_post_process_disparity(l_disp, r_disp):
     """Apply the disparity post-processing method as introduced in
@@ -154,8 +161,15 @@ def evaluate():
     if opts.save_visual or opts.save_pred:
         exp_name = opts.trained_model.split('/')[-3]
         out_dir = os.path.join(
-            opts.out_dir, exp_name, opts.extra_name +
-            '-gpp' if opts.godard_post_process else opts.extra_name + '-raw')
+            opts.out_dir, exp_name, opts.extra_name)
+        if opts.simple_flip_post_process:
+            out_dir += '-fpp'
+        elif opts.godard_post_process:
+            out_dir += '-gpp'
+        elif opts.multi_scale_post_process:
+            out_dir += '-mspp'
+        else:
+            out_dir += '-raw'
         if opts.save_visual:
             os.makedirs(out_dir + '/visual', exist_ok=True)
             visualizer = Visualizer(out_dir + '/visual', visual_dic['visual'])
@@ -163,7 +177,8 @@ def evaluate():
             os.makedirs(out_dir + '/pred', exist_ok=True)
 
     # Evaluate
-    if opts.godard_post_process:
+    if (opts.simple_flip_post_process or opts.godard_post_process
+            or opts.multi_scale_post_process):
         print('->Use the post processing')
     print('->Start Evaluation')
     test_data_num = len(test_loader)
@@ -176,20 +191,25 @@ def evaluate():
                     inputs[ipt_key] = ipt.to(device, non_blocking=True)
             if not opts.precompute_path:
                 outputs = network(inputs, is_train=False)
-                if opts.godard_post_process:
+                if opts.godard_post_process or opts.simple_flip_post_process:
                     inputs['color_s'] = torch.flip(inputs['color_s'], dims=[3])
                     flip_outputs = network(inputs, is_train=False)
                     fflip_depth = torch.flip(flip_outputs[('depth', 's')],
                                              dims=[3])
-                    pp_depth = batch_post_process_disparity(
-                        1 / outputs[('depth', 's')], 1 / fflip_depth)
+                    if opts.godard_post_process:
+                        pp_depth = batch_post_process_disparity(
+                            1 / outputs[('depth', 's')], 1 / fflip_depth)
+                    else:
+                        pp_depth = flip_post_process_disparity(
+                            1 / outputs[('depth', 's')], 1 / fflip_depth)
                     pp_depth = 1 / pp_depth
                     inputs['color_s'] = torch.flip(inputs['color_s'], dims=[3])
-                    outputs[('depth', 's')] = pp_depth
+                    outputs[('depth', 's')] = pp_depth.clone()
                 elif opts.multi_scale_post_process:
                     inputs['color_s'] = torch.flip(inputs['color_s'], dims=[3])
                     up_fac = 2/3
                     H, W = inputs['color_s'].shape[2:]
+                    raw_color = inputs['color_s'].clone()
                     inputs['color_s'] = F.interpolate(inputs['color_s'],
                                              scale_factor=up_fac,
                                              mode='bilinear',
@@ -201,14 +221,14 @@ def evaluate():
                                                            mode='nearest')
                     fflip_depth = torch.flip(flip_depth,
                                              dims=[3])
-                    pp_depth = batch_post_process_disparity(
+                    pp_depth = multi_scale_post_process(
                         1 / outputs[('depth', 's')], 1 / fflip_depth)
                     pp_depth = 1 / pp_depth
 
-                    inputs['color_s'] = torch.flip(inputs['color_s'], dims=[3])
-                    outputs[('depth', 's')] = pp_depth
+                    inputs['color_s'] = torch.flip(raw_color, dims=[3])
+                    outputs[('depth', 's')] = pp_depth.clone()
                 else:
-                    pp_depth = outputs[('depth', 's')]
+                    pp_depth = outputs[('depth', 's')].clone()
             else:
                 outputs = {}
                 pt_path = opts.precompute_path + '/{}.pt'.format(idx)

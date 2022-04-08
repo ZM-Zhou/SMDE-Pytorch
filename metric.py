@@ -139,10 +139,9 @@ def metric_depth_m3d(pred, gt):
     _, _, h, w = gt.shape
     pred = torch.nn.functional.interpolate(pred,
                                            [h, w],
-                                           mode='nearest',
-                                           align_corners=True)
+                                           mode='nearest')
 
-    # garg crop for kitti
+    # C1 metric
     mask = (gt > 0) & (gt < 70)
     gt = gt[mask]
     pred = pred[mask]
@@ -153,10 +152,6 @@ def metric_depth_m3d(pred, gt):
     pred = pred.clamp(1e-3, 70)
 
     # compute errors
-    thresh = torch.max((gt / pred), (pred / gt))
-    a1 = (thresh < 1.25).float().mean()
-    a2 = (thresh < 1.25**2).float().mean()
-    a3 = (thresh < 1.25**3).float().mean()
 
     rmse = (gt - pred)**2
     rmse = torch.sqrt(rmse.mean())
@@ -168,7 +163,7 @@ def metric_depth_m3d(pred, gt):
 
     sq_rel = torch.mean((gt - pred)**2 / gt)
 
-    return [abs_rel, sq_rel, rmse, rmse_log, a1, a2, a3]
+    return [abs_rel, sq_rel, rmse, rmse_log]
 
 
 def metric_photo_rmse(pred, gt):
@@ -203,8 +198,7 @@ class Metric(object):
         self.case_num = 0
         self.now_metric = []
         self.computer = []
-        if ('depth_kitti' in metric_name or 'depth_kitti_mono' in metric_name
-                or 'depth_m3d' in metric_name):
+        if ('depth_kitti' in metric_name or 'depth_kitti_mono' in metric_name):
             self.case_names += [
                 'abs_rel', 'sq_rel', 'rms', 'log_rms', 'a1', 'a2', 'a3'
             ]
@@ -215,7 +209,11 @@ class Metric(object):
         if 'photo_rmse' in metric_name:
             self.case_names += ['photo_rmse']
             self.case_num += 1
-
+        if 'depth_m3d' in metric_name:
+            self.case_names += [
+                'abs_rel', 'sq_rel', 'rms', 'log_10',
+            ]
+            self.case_num += 4
         if best_compute == 'depth_kitti':
             self.best_names = [
                 'abs_rel', 'sq_rel', 'rms', 'log_rms', 'a1', 'a2', 'a3'

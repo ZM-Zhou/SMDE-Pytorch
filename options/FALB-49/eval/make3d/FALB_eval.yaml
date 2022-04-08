@@ -1,0 +1,6 @@
+test_dataset:
+  params:
+    full_size: [256, 512]
+
+_test: options/_base/datasets/make3d_test_godard.yaml
+_base: options/FALB-49/FALB-49.yaml

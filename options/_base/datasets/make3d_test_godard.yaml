@@ -1,0 +1,4 @@
+_dataset:
+  type: Make3DDataset
+  params:
+    split_file: data_splits/make3d/test_list.txt
