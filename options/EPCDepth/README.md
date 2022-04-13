@@ -5,6 +5,8 @@
 |Res50|320x1024|pp|Stereo|Reported|0.091|0.646|4.207|0.176|0.901|-|
 |Res50|320x1024||Stereo|Official|0.096|0.684|4.278|0.184|0.889|[Baidu](https://pan.baidu.com/s/1X4TWog23u2Wk6m6H_mbApA)|
 |Res50|320x1024|pp|Stereo|Official|0.095|0.667|4.239|0.183|0.889|[Baidu](https://pan.baidu.com/s/1X4TWog23u2Wk6m6H_mbApA)|
+|Res50|320x1024||Stereo|Trained|0.090|0.682|4.282|0.178|0.903|[Baidu](https://pan.baidu.com/s/1-Q8N1hPPjKz3BZXbPv_opw)|
+|Res50|320x1024|pp|Stereo|Trained|0.089|0.660|4.224|0.176|0.905|[Baidu](https://pan.baidu.com/s/1-Q8N1hPPjKz3BZXbPv_opw)|
 
 * `Reported` means that the results are reported in the paper.
 * `Official` means that the results are predicted with the models got from their Official Implementations.

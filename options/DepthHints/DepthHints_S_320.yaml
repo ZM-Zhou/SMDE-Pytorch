@@ -10,6 +10,7 @@ val_dataset:
   params:
     is_fixK: v2
     normalize_params: [0, 0, 0]
+    full_size: [320, 1024]
 
 model:
   type: Monodepth2

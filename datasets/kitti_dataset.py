@@ -235,25 +235,49 @@ class KITTIColorDepthDataset(data.Dataset):
                 inputs['hints_o'] = 5.4 * hints_depth_r
                 # inputs['hints_o'] = 0.058 / (hints_depth_r +
                 #                              1e-8) * (hints_depth_r > 0)
-
-            is_flip = (self.dataset_mode == 'train'
-                       and self.flip_mode is not None
-                       and random.uniform(0, 1) > 0.5)
-            if is_flip:
+            
+            if (self.dataset_mode == 'train' and self.flip_mode is not None):
                 if self.flip_mode == 'both':  # random flip mode
-                    flip_img = random.uniform(0, 1) > 0.5
+                    switch_img = random.uniform(0, 1) > 0.5
+                    switch_k = random.uniform(0, 1) > 0.5
+                    if switch_img and switch_k:
+                        is_flip = False
+                        inputs['color_o_raw'], inputs['color_s_raw'] =\
+                            inputs['color_s_raw'], inputs['color_o_raw']
+                        if self.is_depthhints:
+                            inputs['hints_s'], inputs['hints_o'] = \
+                                inputs['hints_o'], inputs['hints_s']
+                        inputs['direct'] = -inputs['direct']
+                        if self.is_KTmatrix:
+                            inputs['T'][0, 3] = -inputs['T'][0, 3]
+                    elif switch_img and not switch_k:
+                        is_flip = True
+                        inputs['color_o_raw'], inputs['color_s_raw'] =\
+                            inputs['color_s_raw'], inputs['color_o_raw']
+                        if self.is_depthhints:
+                            inputs['hints_s'], inputs['hints_o'] = \
+                                inputs['hints_o'], inputs['hints_s']
+                    elif switch_img and not switch_k:
+                        is_flip = True
+                        inputs['direct'] = -inputs['direct']
+                        if self.is_KTmatrix:
+                            inputs['T'][0, 3] = -inputs['T'][0, 3]
+                    else:
+                        is_flip = False
                 else:
-                    flip_img = self.flip_mode == 'img'
-                if flip_img:
-                    inputs['color_o_raw'], inputs['color_s_raw'] =\
-                        inputs['color_s_raw'], inputs['color_o_raw']
-                    if self.is_depthhints:
-                        inputs['hints_s'], inputs['hints_o'] = \
-                            inputs['hints_o'], inputs['hints_s']
-                else:
-                    inputs['direct'] = -inputs['direct']
-                    if self.is_KTmatrix:
-                        inputs['T'][0, 3] = -inputs['T'][0, 3]
+                    is_flip = random.uniform(0, 1) > 0.5
+                    if is_flip:
+                        flip_img = self.flip_mode == 'img'
+                        if flip_img:
+                            inputs['color_o_raw'], inputs['color_s_raw'] =\
+                                inputs['color_s_raw'], inputs['color_o_raw']
+                            if self.is_depthhints:
+                                inputs['hints_s'], inputs['hints_o'] = \
+                                    inputs['hints_o'], inputs['hints_s']
+                        else:
+                            inputs['direct'] = -inputs['direct']
+                            if self.is_KTmatrix:
+                                inputs['T'][0, 3] = -inputs['T'][0, 3]
 
         # Process data
         # resize crop & color jit & flip for train

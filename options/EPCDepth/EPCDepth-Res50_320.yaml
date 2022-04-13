@@ -4,6 +4,7 @@ train_dataset:
     output_frame: ['o']
     normalize_params: [0, 0, 0]
     full_size: [320, 1024]
+    is_depthhints: True
 
 val_dataset:
   params:
@@ -16,21 +17,62 @@ model:
 
 loss:
   types:
-    - type: PhotoLoss
+    - type: EPCDepth_PhotoLoss
       rate: 1
-      name: photo_l1
+      name: photo_epcdepth
       args:
-        pred_n: synth_4
-        target_n: color_s
-        l1_rate: 1
-        other_side: True
-    - type: SmoothLoss
-      rate: 0.001
-      name: photo_l1
-      args:
-        pred_n: disp_4
-        image_n: color_s
-        relative_smo: True
+        target_n: color_{}
+        preds_n: ['synth_0_{}',
+                  'synth_1_{}',
+                  'synth_2_{}',
+                  'synth_3_{}',
+                  'synth_4_{}',
+                  'synth_5_{}',
+                  'synth_6_{}',
+                  'synth_7_{}',
+                  'synth_8_{}',
+                  'synth_9_{}',]
+        pred_depths_n: ['depth_0_{}',
+                        'depth_1_{}',
+                        'depth_2_{}',
+                        'depth_3_{}',
+                        'depth_4_{}',
+                        'depth_5_{}',
+                        'depth_6_{}',
+                        'depth_7_{}',
+                        'depth_8_{}',
+                        'depth_9_{}']
+        hints_n: synth_hints_{}
+        hints_depth: hints_{}
+        ident_n: color_o
+    # - type: SmoothLoss
+    #   rate: 0.001
+    #   name: smooth-0
+    #   args:
+    #     pred_n: disp_0_{}
+    #     image_n: color_{}
+    #     relative_smo: True
+    # - type: SmoothLoss
+    #   rate: 0.0005
+    #   name: smooth-1
+    #   args:
+    #     pred_n: disp_1_{}
+    #     image_n: color_{}
+    #     relative_smo: True
+    # - type: SmoothLoss
+    #   rate: 0.00025
+    #   name: smooth-2
+    #   args:
+    #     pred_n: disp_2_{}
+    #     image_n: color_{}
+    #     relative_smo: True
+    # - type: SmoothLoss
+    #   rate: 0.000125
+    #   name: smooth-3
+    #   args:
+    #     pred_n: disp_3_{}
+    #     image_n: color_{}
+    #     relative_smo: True
 
 pred_size: [320, 1024]
 pred_norm: [0, 0, 0]
@@ -38,8 +80,21 @@ pred_norm: [0, 0, 0]
 visual:
   type:
     color_s: img
-    disp_s: disp
-  shape: [[color_s, disp_s]]
+    color_o: img
+    disp_0_s: disp
+    photo_epcdepth/s: error_heat
+    synth_0_s: img
+    disp_3_s: disp
+    disp_2_s: disp
+    disp_1_s: disp
+    synth_hints_s: img
+    disp_9_s: disp
+  shape: [[color_s, color_o],
+          [synth_0_s,photo_epcdepth/s],
+          [disp_0_s, disp_1_s],
+          [disp_2_s, disp_3_s],
+          [disp_9_s, synth_hints_s]]
+
 
 _train: options/_base/datasets/kitti_train_320.yaml
 _val: options/_base/datasets/kitti_test_320.yaml

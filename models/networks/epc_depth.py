@@ -56,24 +56,30 @@ class EPCDepth_Net(Base_of_Network):
             if self.data_graft:
                 self._do_data_graft()
 
-            img_h, img_w = self.inputs['color_s_aug']
+            img_h, img_w = self.inputs['color_s_aug'].shape[2:]
             input_image = (self.inputs['color_s_aug'] - 0.45) / 0.225
             features = self.net_modules['enc'](input_image)
             norm_disps = self.net_modules['dec'](features)
+
+            sou_img = self.inputs['color_o']
+            K =self.inputs['K']
+            T = inputs['T'].clone()
+            T[:, 0, 3] = T[:, 0, 3] / 5.4
             for i in range(len(norm_disps)):
                 pred_disp = F.interpolate(norm_disps[i], [img_h, img_w],
                                           mode='bilinear',
                                           align_corners=False)
                 _, pred_depth = self._disp_to_depth(pred_disp)
-                outputs['disp_{}'.format(i)] = pred_disp
-                outputs['depth_{}'.format(i)] = pred_depth
+                outputs['disp_{}_s'.format(i)] = pred_disp.detach()
+                outputs['depth_{}_s'.format(i)] = pred_depth * 5.4
 
-            outputs = self._get_warp_img(self.inputs['color_o_aug'],
-                                         self.inputs['K'], self.inputs['T'],
-                                         outputs)
+                outputs['synth_{}_s'.format(i)] = self._generate_warp_image(
+                    sou_img, K, T, pred_depth)
+           
+            outputs['synth_hints_s'] = self._generate_warp_image(
+                sou_img, K, inputs['T'], inputs['hints_s'])
 
-            self._compute_losses(outputs, 's', losses, add_loss=False)
-            self._add_final_losses('s', losses)
+            self._compute_losses(outputs, 's', losses, add_loss=True)
             return outputs, losses
 
         else:
@@ -96,7 +102,7 @@ class EPCDepth_Net(Base_of_Network):
         graft_h = int(rand_w * h)
         flip = random.random()
         for name in self.inputs:
-            if 'color' in name:
+            if 'color' in name or 'hints' in name:
                 self.inputs[name][self.inputs['direct'] > 0, :,
                                   graft_h:, :] = self.inputs[name][
                                       self.inputs['direct'] > 0].clone()[
@@ -119,17 +125,6 @@ class EPCDepth_Net(Base_of_Network):
         scaled_disp = min_disp + (max_disp - min_disp) * disp
         depth = 1 / scaled_disp
         return scaled_disp, depth
-
-    def _get_warp_img(self, sou_img, K, T, outputs, depth_hints=None):
-        if depth_hints:
-            outputs[('synth_hints')] = self._generate_warp_image(
-                sou_img, K, T, depth_hints)
-        for k, v in outputs.items():
-            if 'depth' in k:
-                outputs['synth_{}'.format(
-                    k.split('_')[-1])] = self._generate_warp_image(
-                        sou_img, K, T, v)
-        return outputs
 
     def _generate_warp_image(self, img, K, T, D):
         batch_size, _, height, width = img.shape
@@ -170,31 +165,3 @@ class EPCDepth_Net(Base_of_Network):
                                                    pix_coords,
                                                    padding_mode='border')
         return warp_img
-
-    def _spp_distillate(self, data, predicts):
-        with torch.no_grad():
-            disp_best = None
-            decoder_disp_best = None
-            reproj_loss_min = None
-            for scale, disp in enumerate(predicts['disparity']):
-                reproj_loss = self.compute_reprojection_loss(
-                    predicts['warp_from_other_side'][scale], data['curr'])
-                if scale == 0:
-                    disp_best = disp
-                    reproj_loss_min = reproj_loss
-                elif scale == 5:
-                    decoder_disp_best = disp_best.clone()
-                    disp_best = disp
-                    reproj_loss_min = reproj_loss
-                else:
-                    disp_best = torch.where(reproj_loss < reproj_loss_min,
-                                            disp, disp_best)
-                    reproj_loss_min, _ = torch.cat(
-                        [reproj_loss, reproj_loss_min],
-                        dim=1).min(dim=1, keepdim=True)
-
-            if decoder_disp_best is not None:
-                decoder_disp_best = decoder_disp_best.detach()
-                # encoder_disp_best = disp_best.detach()
-            else:
-                decoder_disp_best = disp_best.detach()
