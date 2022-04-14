@@ -103,6 +103,7 @@ Here we introduce some important arguments.
 |`--save_pred`|Save the predicted depths of the samples which are in `--visual_list`|
 |`--save_visual`|Save the visualization results of the samples which are in `--visual_list`|
 |`-fpp`,`-gpp`, `-mspp`|Adopt different post-processing steps. (Please choose one in each time)|
+
 The output files are saved in `eval_res\` by default. Please check `evaluate.py` for more information about arguments.
 For example, if you want to evaluate `Monodepth2` on the KITTI Eigen test set with the post-processing proposed by Godard, and you want to save the visualization and predicted depths of all the test samples. Please use:
 ```
@@ -124,7 +125,7 @@ The evaluation output will be like
     | abs_rel  |  sq_rel  |   rms    | log_rms  |    a1    |    a2    |    a3    |
     |     0.102|     0.795|     4.685|     0.198|     0.876|     0.954|     0.977|
 ```
-The output predicted depths and visualization results will be saved in `eval_res/MD2_S_320_bs4/-gpp/*`
+The output predicted depths and visualization results will be saved in `eval_res/MD2_S_320_bs4/-gpp/*`.
 ## Train the method
 coming soon
 
