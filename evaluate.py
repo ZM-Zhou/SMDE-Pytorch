@@ -247,9 +247,11 @@ def evaluate():
                     visualizer.update_visual_dict(inputs, outputs, visual_map)
                     visualizer.do_visualizion(str(idx))
                 if opts.save_pred:
+                    # save_path = os.path.join(
+                    #     out_dir, 'pred', inputs['file_info'][0][0].replace(
+                    #         ' ', '__').replace('/', '-') + '.pt')
                     save_path = os.path.join(
-                        out_dir, 'pred', inputs['file_info'][0][0].replace(
-                            ' ', '__').replace('/', '-') + '.pt')
+                        out_dir, 'pred', str(idx) + '.pt')
                     torch.save(pp_depth, save_path)
             print('{}/{}'.format(idx, test_data_num), end='\r')
             idx += 1

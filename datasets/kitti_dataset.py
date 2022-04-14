@@ -94,6 +94,13 @@ class KITTIColorDepthDataset(data.Dataset):
             else:
                 self.color_resize = NoneTransform()
 
+        # Change the root path if use jpg images
+        if self.read_jpg:
+            if dataset_mode == 'test':
+                self.dataset_dir = Path.get_path_of('eigen_kitti_test_jpg')
+            else:
+                raise NotImplementedError
+       
         # Read pre-generated ground-truth depths for testing:
         self.gt_depths = None
         if len(self.file_list) == 697 or len(self.file_list) == 652:
@@ -109,13 +116,6 @@ class KITTIColorDepthDataset(data.Dataset):
                                          fix_imports=True,
                                          encoding='latin1',
                                          allow_pickle=True)['data']
-        
-        # Change the root path if use jpg images
-        if self.read_jpg:
-            if dataset_mode == 'test':
-                self.dataset_dir = Path.get_path_of('eigen_kitti_test_jpg')
-            else:
-                raise NotImplementedError
 
     def __len__(self):
         return len(self.file_list)

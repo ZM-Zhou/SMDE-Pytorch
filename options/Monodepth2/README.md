@@ -1,5 +1,5 @@
 # Monodepth2
-**Results on KITTI raw test set**
+**Results on KITTI raw test set (Mono)**
 |Backbone|Resolution|Sup|Train|Abs Rel.|Abs Sq.|RMSE|RMSElog|A1|Model|
 |------|-----|---|-----|--------|-------|----|-------|--|--------|
 |Res18|192x640|Mono|Reported|0.115|0.903|4.863|0.193|0.877|-|
@@ -7,7 +7,11 @@
 |Res18|192x640|Mono|Trained|0.113|0.858|4.753|0.190|0.879|[Baidu](https://pan.baidu.com/s/1eTZa2-5Kd9TJNJOJvDzetg)|
 |Res18|320x1024|Mono|Reported|0.115|0.882|4.701|0.190|0.879|-|
 |Res18|320x1024|Mono|Official|0.115|0.886|4.704|0.190|0.879|[Baidu](https://pan.baidu.com/s/1d94jQ-XNaJNviVDBu7p7BA)|
-|Res18|320x1024|Mono|Trained|0.109|0.797|4.533|0.184|0.888|[Baidu](https://pan.baidu.com/s/1T3IGfBB2c5Y2xskACRg3aQ)|
+|Res18|320x1024|Mono|Trained|0.109|0.797|4.533|0.184|0.887|[Baidu](https://pan.baidu.com/s/1T3IGfBB2c5Y2xskACRg3aQ)|
+
+**Results on KITTI raw test set (Stereo)**
+|Backbone|Resolution|Sup|Train|Abs Rel.|Abs Sq.|RMSE|RMSElog|A1|Model|
+|------|-----|---|-----|--------|-------|----|-------|--|--------|
 |Res18|192x640|Stereo|Reported|0.109|0.873|4.960|0.209|0.864|-|
 |Res18|192x640|Stereo|Official|0.109|0.875|4.959|0.209|0.864|[Baidu](https://pan.baidu.com/s/1EUwfWK89iOKcGa2SRo3-uw)|
 |Res18|192x640|Stereo|Trained|0.108|0.858|4.819|0.202|0.866|[Baidu](https://pan.baidu.com/s/1gwWUzUKNTWq5MuUzUzhJdg)|
@@ -15,7 +19,56 @@
 |Res18|320x1024|Stereo|Official|0.107|0.851|4.765|0.201|0.874|[Baidu](https://pan.baidu.com/s/16cCslqM6Vdhye9QkuoCUSg)|
 |Res18|320x1024|Stereo|Trained|0.104|0.824|4.747|0.200|0.875|[Baidu](https://pan.baidu.com/s/1Kj9HOo15murscIsOchMEUA)|
 
+
 * `Reported` means that the results are reported in the paper.
 * `Official` means that the results are predicted with the models got from their Official Implementations.
 * `Trained` means that the results are predicted with the models trained with this repository.
 * code for all the download links is `smde`
+
+### Evaluation Commands
+For KITTI test sets.
+```
+# For Official Mono 192x640
+python evaluate.py\
+ --exp_opts options/Monodepth2/eval/MD2_M_192_eval_OI.yaml\
+ --model_path convert_models/MD2_M_192_OI/model/md2_mono_192.pth\
+ --metric_name depth_kitti_mono
+
+# For Trained Mono 192x640
+python evaluate.py\
+ --exp_opts options/Monodepth2/eval/MD2_M_192_eval.yaml\
+ --model_path convert_models/MD2_M_192_bs12/model/best_model.pth\
+ --metric_name depth_kitti_mono
+
+# For Official Mono 320x1024
+python evaluate.py\
+ --exp_opts options/Monodepth2/eval/MD2_M_320_eval_OI.yaml\
+ --model_path convert_models/MD2_M_320_OI/model/md2_mono_320.pth\
+ --metric_name depth_kitti_mono
+
+# For Trained Mono 320x1024
+python evaluate.py\
+ --exp_opts options/Monodepth2/eval/MD2_M_320_eval.yaml\
+ --model_path convert_models/MD2_M_320_bs4/model/best_model.pth\
+ --metric_name depth_kitti_mono
+
+# For Official Stereo 192x640
+python evaluate.py\
+ --exp_opts options/Monodepth2/eval/MD2_S_192_eval_OI.yaml\
+ --model_path convert_models/MD2_S_192_OI/model/md2_stereo_192.pth
+
+# For Trained Stereo 192x640
+python evaluate.py\
+ --exp_opts options/Monodepth2/eval/MD2_S_192_eval.yaml\
+ --model_path convert_models/MD2_S_192_bs12/model/best_model.pth
+
+# For Official Stereo 320x1024
+python evaluate.py\
+ --exp_opts options/Monodepth2/eval/MD2_S_320_eval_OI.yaml\
+ --model_path convert_models/MD2_S_320_OI/model/md2_stereo_320.pth
+
+# For Trained Stereo 320x1024
+python evaluate.py\
+ --exp_opts options/Monodepth2/eval/MD2_S_320_eval.yaml\
+ --model_path convert_models/MD2_S_320_bs4/model/best_model.pth
+```
