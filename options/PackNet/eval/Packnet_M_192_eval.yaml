@@ -1,0 +1,8 @@
+test_dataset:
+  params:
+    normalize_params: [0, 0, 0]
+    is_fixK: v2
+
+_test: options/_base/datasets/kitti_test_192.yaml
+_base: options/PackNet/Packnet_M_192.yaml
+

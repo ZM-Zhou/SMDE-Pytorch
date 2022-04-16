@@ -18,7 +18,7 @@ For KITTI test sets.
 # For Offical
 python evaluate.py\
  --exp_opts options/EPCDepth/eval/EPCDepth-Res50_320_eval_OI.yaml\
- --model_path convert_models/EPCDepth_Res50_320_OI/model/epcdepth_res50_320.pth
+ --model_path convert_models/EPCDepth_Res50_320_OI/model/epcdepth_res50_320.pth\
  -gpp # optional post-processing
 
 # For Trained

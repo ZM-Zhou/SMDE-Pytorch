@@ -4,8 +4,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from models.backbones.resnet import ResNet_Backbone
+from models.backbones.packnet_enc import PackEncoder
 from models.base_net import Base_of_Network
-from models.decoders.pose import PoseDecoder
+from models.decoders.packnet_dec import PackDecoder
+from models.decoders.pose import PoseDecoder, PoseNet
 from models.decoders.upsample import UpSample_Layers
 from utils import platform_manager
 
@@ -19,7 +21,8 @@ class Monodepth2(Base_of_Network):
             max_depth=100,
             image_size=[192, 640],
             data_mode=[1, -1],  # ["o"]
-            use_depthhints=False
+            use_depthhints=False,
+            use_packnet=False
     ):
         self.init_opts = locals()
 
@@ -28,22 +31,31 @@ class Monodepth2(Base_of_Network):
         self.image_size = image_size
         self.data_mode = data_mode
         self.use_depthhints = use_depthhints
+        self.use_packnet = use_packnet
 
         self.mono_train = (1 in data_mode or -1 in data_mode)
 
         self.net_module = {}
-        self.net_module['encoder'] = ResNet_Backbone(encoder_layer)
-        if encoder_layer == 18:
-            enc_ch_num = [64, 64, 128, 256, 512]
-        else:
-            enc_ch_num = [64, 256, 512, 1024, 2048]
-        self.net_module['decoder'] = UpSample_Layers(enc_ch_num)
+        if self.use_packnet:
+            self.net_module['encoder'] = PackEncoder()
+            self.net_module['decoder'] = PackDecoder()
 
-        if self.mono_train:
-            self.net_module['pose_encoder'] = ResNet_Backbone(encoder_layer,
-                                                              in_ch=6)
-            self.net_module['pose_decoder'] = PoseDecoder(
-                enc_ch_num, num_input_features=1, num_frames_to_predict_for=2)
+            if self.mono_train:
+                self.net_module['pose_encoder'] = nn.Identity()
+                self.net_module['pose_decoder'] = PoseNet(1)
+        else:
+            self.net_module['encoder'] = ResNet_Backbone(encoder_layer)
+            if encoder_layer == 18:
+                enc_ch_num = [64, 64, 128, 256, 512]
+            else:
+                enc_ch_num = [64, 256, 512, 1024, 2048]
+            self.net_module['decoder'] = UpSample_Layers(enc_ch_num)
+
+            if self.mono_train:
+                self.net_module['pose_encoder'] = ResNet_Backbone(encoder_layer,
+                                                                  in_ch=6)
+                self.net_module['pose_decoder'] = PoseDecoder(
+                    enc_ch_num, num_input_features=1, num_frames_to_predict_for=2)
 
         self._networks = nn.ModuleList(list(self.net_module.values()))
 
@@ -69,7 +81,10 @@ class Monodepth2(Base_of_Network):
             if self.mono_train:
                 outputs.update(self._get_poses())
             for scale in range(4):
-                disp = torch.sigmoid(disp_outputs[scale])
+                if self.use_packnet:
+                    disp = disp_outputs[scale]
+                else:
+                    disp = torch.sigmoid(disp_outputs[scale])
                 outputs['disp_raw_{}_{}'.format(scale, train_side)] = disp
                 disp = F.interpolate(disp,
                                      self.image_size,
@@ -103,10 +118,16 @@ class Monodepth2(Base_of_Network):
             return outputs, losses
 
         else:
-            x = (inputs['color_s'] - 0.45) / 0.225
+            if self.use_packnet:
+                x = inputs['color_s']
+            else:
+                x = (inputs['color_s'] - 0.45) / 0.225
             features = self.net_module['encoder'](x)
             disp_outputs = self.net_module['decoder'](features, x.shape)
-            disp = torch.sigmoid(disp_outputs[0])
+            if self.use_packnet:
+                disp = disp_outputs[0]
+            else:
+                disp = torch.sigmoid(disp_outputs[0])
             _, pred_depth = self._disp2depth(disp)
             if not self.mono_train:
                 pred_depth = pred_depth * 5.4
