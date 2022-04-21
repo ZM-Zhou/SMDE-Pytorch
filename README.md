@@ -22,6 +22,7 @@ conda activate pytorch170cu11
 |[Monodepth2](options/Monodepth2)| 2019 ICCV| ✔| ✔| [Link](https://arxiv.org/abs/1806.01260)| [Link](https://github.com/nianticlabs/monodepth2)|
 |[DepthHints](options/DepthHints)| 2019 ICCV| ✔| ✔| [Link](https://arxiv.org/abs/1909.09051)| [Link](https://github.com/nianticlabs/depth-hints)|
 |[FAL-Net](options/FALB-49)| 2020 NeurIPS | ✔| ✔| [Link](https://proceedings.neurips.cc/paper/2020/hash/951124d4a093eeae83d9726a20295498-Abstract.html)| [Link](https://github.com/JuanLuisGonzalez/FAL_net)|
+|[P2Net](options/P2Net) | 2020 ECCV| ✔| | [Link](https://arxiv.org/abs/2007.07696)| [Link](https://github.com/svip-lab/Indoor-SfMLearner)|
 |[EdgeOfDepth](options/EdgeOfDepth)| 2020 CVPR| ✔| | [Link](https://openaccess.thecvf.com/content_CVPR_2020/html/Zhu_The_Edge_of_Depth_Explicit_Constraints_Between_Segmentation_and_Depth_CVPR_2020_paper.html)| [Link](https://github.com/TWJianNuo/EdgeDepth-Release)|
 |[PackNet](options/PackNet)| 2020 CVPR| ✔| | [Link](https://openaccess.thecvf.com/content_CVPR_2020/html/Guizilini_3D_Packing_for_Self-Supervised_Monocular_Depth_Estimation_CVPR_2020_paper.html)| [Link](https://github.com/TRI-ML/packnet-sfm)|
 |[EPCDepth](options/EPCDepth) | 2021 ICCV| ✔| ✔| [Link](https://arxiv.org/abs/2109.12484)| [Link](https://github.com/prstrive/EPCDepth)|
@@ -33,7 +34,7 @@ conda activate pytorch170cu11
 - [x] Monodepth2 (ICCV 2019)
 - [x] DepthHints (ICCV 2019)
 - [x] FAL-Net (NeurIPS 2020)
-- [ ] P^2-Net (ECCV 2020)
+- [x] P^2-Net (ECCV 2020)
 - [x] Edge-of-depth (CVPR 2020)
 - [x] PackNet (CVPR 2020)
 - [X] EPCDepth (ICCV 2021)
@@ -42,7 +43,7 @@ conda activate pytorch170cu11
 ## Evaluation Results
 We give the performances of the methods on **the KITTI raw test set** (an outdoor dataset) for helping you choose the model. More pretrained models are given on their pages (click their names in the above table).
 |Method|Info.|Sup|Trained|Abs Rel.|Abs Sq.|RMSE|RMSElog|A1|
-|------|-----|---|-----|--------|-------|----|-------|--|
+|------|-----|---|-------|--------|-------|----|-------|--|
 |PackNet|PackV1+192x640|Mono|[Official](https://pan.baidu.com/s/1d_uL1q2_bsGEskFDcEfBGA)|0.110|0.836|4.655|0.187|0.881|
 |Monodepth2|Res18+320x1024|Mono|[Trained](https://pan.baidu.com/s/1T3IGfBB2c5Y2xskACRg3aQ)|0.109|0.797|4.533|0.184|0.888|
 |Monodepth2|Res18+320x1024|Stereo|[Trained](https://pan.baidu.com/s/1Kj9HOo15murscIsOchMEUA)|0.104|0.824|4.747|0.200|0.875|
@@ -50,6 +51,11 @@ We give the performances of the methods on **the KITTI raw test set** (an outdoo
 |DepthHints|Res50+320x1024|Stereo|[Trained](https://pan.baidu.com/s/12xv0IY_hcO1YtsEZJ2Vuog)|0.094|0.680|4.333|0.181|0.894|
 |EdgeOfDepth|Res50+320x1024|Stereo|[Official](https://pan.baidu.com/s/1yToYiunNgNQZY8tunZOmGA)|0.092|0.647|4.247|0.177|0.897|
 |EPCDepth|Res50+320x1024|Stereo|[Trained](https://pan.baidu.com/s/1-Q8N1hPPjKz3BZXbPv_opw)|0.090|0.682|4.282|0.178|0.903|
+
+The methods on **the NYU v2 test set** (an indoor dataset).
+|Method|Info.|Sup|Trained|Abs Rel.|RMSE|log10|A1|
+|------|-----|---|-------|--------|----|-----|--|
+|P2Net|Res18+5f+288x384|Mono|[Official](https://pan.baidu.com/s/1wpN6O-e453e9n8AJqvG3JA)|0.149|0.556|0.063|0.797|
 
 * `Official` means that the results are predicted with the models got from their Official Implementations.
 * `Trained` means that the results are predicted with the models trained with this repository.
@@ -88,6 +94,10 @@ unzip "*.zip"
 Then you should generate the `gt_depth` file as done in the [Monodepth2](https://github.com/nianticlabs/monodepth2).
 
 As an alternative, we provide the Eigen test subset (with `.png` images [Here](https://pan.baidu.com/s/16qfBtfHp61d8EOFQFv-OWw) or with `.jpg` images [Here](https://pan.baidu.com/s/17w77UwXecqJf8gV3a26hDQ), about 2GB) and the `gt_depth` files for the people who just want to do the evaluation. You can download and unzip it to your data folder.
+
+##### NYUv2 test set
+We use the NYUv2 test set as done in P2Net and EPCDepth, which could be downloaded in [Here](https://pan.baidu.com/s/1AKv_V59WclGHULt-casXaA)
+
 ##### Set data path
 We give an example `path_example.py` for setting the path in the repository.
 Please create a python file named `path_my.py` and copy the content in `path_example.py` to the `path_my.py`. Then you can replace the used paths to your folder in the `path_my.py`.
@@ -141,7 +151,9 @@ coming soon
 [FAL-Net](https://github.com/JuanLuisGonzalez/FAL_net)  
 [DepthHints](https://github.com/nianticlabs/depth-hints)  
 [EPCDepth](https://github.com/prstrive/EPCDepth)  
-[EdgeOfDepth](https://github.com/TWJianNuo/EdgeDepth-Release)
-[PackNet](https://github.com/TRI-ML/packnet-sfm)
+[EdgeOfDepth](https://github.com/TWJianNuo/EdgeDepth-Release)  
+[PackNet](https://github.com/TRI-ML/packnet-sfm)  
+[P2Net](https://github.com/svip-lab/Indoor-SfMLearner)  
 [ApolloScape Dataset](http://apolloscape.auto/index.html)  
 [KITTI Dataset](http://www.cvlibs.net/datasets/kitti/index.php)  
+[NYUv2 Dataset](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html)

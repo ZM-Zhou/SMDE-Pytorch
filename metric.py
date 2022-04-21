@@ -165,6 +165,43 @@ def metric_depth_m3d(pred, gt):
 
     return [abs_rel, sq_rel, rmse, rmse_log]
 
+def metric_depth_nyu(pred, gt, median_scale=False):
+    _, _, h, w = gt.shape
+    pred = torch.nn.functional.interpolate(pred, [h, w],
+                                           mode='bilinear',
+                                           align_corners=False)
+
+    mask = gt > 0
+    gt = gt[mask]
+    pred = pred[mask]
+    if median_scale:
+        gt_median = torch.median(gt)
+        pred_median = torch.median(pred)
+        scale = gt_median / pred_median
+        pred *= scale
+    pred = pred.clamp(1e-1, 10)
+
+    # compute errors
+    thresh = torch.max((gt / pred), (pred / gt))
+    a1 = (thresh < 1.25).float().mean()
+    a2 = (thresh < 1.25**2).float().mean()
+    a3 = (thresh < 1.25**3).float().mean()
+
+    rmse = (gt - pred)**2
+    rmse = torch.sqrt(rmse.mean())
+
+    rmse_log = (torch.log(gt) - torch.log(pred))**2
+    rmse_log = torch.sqrt(rmse_log.mean())
+
+    log10 = torch.mean(torch.abs((torch.log10(gt) - torch.log10(pred))))
+
+    abs_rel = torch.mean(torch.abs(gt - pred) / gt)
+
+    sq_rel = torch.mean((gt - pred)**2 / gt)
+
+    return [abs_rel, sq_rel, rmse, rmse_log, log10, a1, a2, a3]
+
+
 
 def metric_photo_rmse(pred, gt):
     # RMSE
@@ -184,6 +221,7 @@ class Metric(object):
         'sq_rel': 1,
         'rms': 1,
         'log_rms': 1,
+        'log_10': 1,
         'a1': -1,
         'a2': -1,
         'a3': -1,
@@ -214,6 +252,12 @@ class Metric(object):
                 'abs_rel', 'sq_rel', 'rms', 'log_10',
             ]
             self.case_num += 4
+        if 'depth_nyu_mono' in metric_name:
+            self.case_names += [
+                'abs_rel', 'sq_rel', 'rms', 'log_rms', 'log_10', 'a1', 'a2', 'a3'
+            ]
+            self.case_num += 8
+
         if best_compute == 'depth_kitti':
             self.best_names = [
                 'abs_rel', 'sq_rel', 'rms', 'log_rms', 'a1', 'a2', 'a3'
@@ -271,6 +315,10 @@ class Metric(object):
             pred = outputs[('depth', 's')]
             gt = inputs['depth']
             res += metric_depth_m3d(pred, gt)
+        if 'depth_nyu_mono' in self.metric_name:
+            pred = outputs[('depth', 's')]
+            gt = inputs['depth']
+            res += metric_depth_nyu(pred, gt, True)
 
         self.now_metric = [a + b for (a, b) in zip(self.now_metric, res)]
         self.all_metric.append([e.item() for e in res])

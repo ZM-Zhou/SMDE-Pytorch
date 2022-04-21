@@ -2,6 +2,7 @@ import os
 from collections import Counter
 
 import numpy as np
+import h5py
 from PIL import Image, ImageFile
 from scipy.io import loadmat
 
@@ -146,3 +147,14 @@ def get_camera_params(path):
     in_mat = trans_mat
     ex_mat[0, 3], in_mat[0, 3] = in_mat[0, 3], ex_mat[0, 3]
     return in_mat.astype(np.float32), ex_mat.astype(np.float32)
+
+def h5_loader(path):
+    h5f = h5py.File(path, "r")
+    rgb = np.array(h5f['rgb'])
+    rgb = np.transpose(rgb, (1, 2, 0))
+    depth = np.array(h5f['depth'])
+    norm = np.array(h5f['norm'])
+    norm = np.transpose(norm, (1,2,0))
+    valid_mask = np.array(h5f['mask'])
+
+    return rgb, depth, norm, valid_mask

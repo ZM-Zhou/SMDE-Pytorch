@@ -378,12 +378,13 @@ class KITTIColorDepthDataset(data.Dataset):
                         self.normalize(self.to_tensor(img))
 
                 elif 'depth' in key:
+                    # do not resize ground truth in test
                     raw_depth = inputs[key]
-                    depth = torch.from_numpy(raw_depth.copy()).unsqueeze(
-                        0)  # do not resize ground truth in test
+                    depth = torch.from_numpy(raw_depth.copy()).unsqueeze(0)  
                     inputs[key] = depth
                 elif 'hints' in key:
-                    raw_hints = inputs[key] * self.full_size[1]
+                    # do not resize hints truth in test
+                    raw_hints = inputs[key]
                     inputs[key] = raw_hints.to(torch.float)
 
         # delete the raw data

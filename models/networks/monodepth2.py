@@ -22,7 +22,8 @@ class Monodepth2(Base_of_Network):
             image_size=[192, 640],
             data_mode=[1, -1],  # ["o"]
             use_depthhints=False,
-            use_packnet=False
+            use_packnet=False,
+            set_SCALE=None,
     ):
         self.init_opts = locals()
 
@@ -32,6 +33,7 @@ class Monodepth2(Base_of_Network):
         self.data_mode = data_mode
         self.use_depthhints = use_depthhints
         self.use_packnet = use_packnet
+        self.set_SCALE = set_SCALE
 
         self.mono_train = (1 in data_mode or -1 in data_mode)
 
@@ -131,6 +133,8 @@ class Monodepth2(Base_of_Network):
             _, pred_depth = self._disp2depth(disp)
             if not self.mono_train:
                 pred_depth = pred_depth * 5.4
+            if self.set_SCALE is not None:
+                pred_depth = pred_depth * self.set_SCALE
             outputs[('depth', 's')] = pred_depth
             # for scale in range(4):
             #     disp = torch.sigmoid(disp_outputs[scale])
