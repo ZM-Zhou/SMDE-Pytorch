@@ -1,5 +1,6 @@
 _dataset:
-  type: NYUv2_Dataset
   params:
     split_file: data_splits/nyuv2/test_list.txt
     full_size: [288, 384]
+
+_base: options/_base/datasets/nyuv2/_base.yaml

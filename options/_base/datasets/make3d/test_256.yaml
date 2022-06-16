@@ -1,0 +1,6 @@
+_dataset:
+  params:
+    split_file: data_splits/make3d/test_list.txt
+    full_size: [256, 512]
+  
+_base: options/_base/datasets/make3d/_base.yaml

@@ -1,7 +1,0 @@
-_dataset:
-  type: KITTIColorDepthDataset
-  params:
-    split_file: data_splits/kitti/test_improved_list.txt
-    full_size: [320, 1024]
-    is_fixK: True
-    improved_test: True

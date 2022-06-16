@@ -1,0 +1,12 @@
+_dataset:
+  type: NYUv2_Dataset
+  params:
+    split_file: null
+    full_size: null
+    patch_size: null
+    random_resize: True
+    is_KTmatrix: False
+    normalize_params: [0.411, 0.432, 0.45]
+    flip_mode: null
+    color_aug: True
+    multi_out_scale: null
