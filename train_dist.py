@@ -324,7 +324,7 @@ class Trainer(object):
 
             if torch.isnan(losses['loss']):
                 for k, v in losses.items():
-                    if 'value-' in k:
+                    if '-value' in k:
                         print(k, v)
                 exit()
             for idx_optim, optimizer_item in enumerate(self.optimizer):

@@ -45,7 +45,8 @@ class Visualizer(object):
             'error_pn': self._visual_pn,
             'mask': self._visual_mask,
             'mask_error_pn': self._visual_mpn,
-            'vector': self._visual_vector
+            'vector': self._visual_vector,
+            'normal': self._visual_normal
         }
         self.inter_mode_dict = {
             'img': 'bilinear',
@@ -56,7 +57,8 @@ class Visualizer(object):
             'error_pn': 'bilinear',
             'mask': 'nearest',
             'mask_error_pn': 'nearest',
-            'vector': 'nearest'
+            'vector': 'nearest',
+            'normal': 'nearest'
         }
 
         self.visual_dict = {}
@@ -206,7 +208,8 @@ class Visualizer(object):
         return disp_color
 
     def _visual_mask(self, mask):
-        show_mask = mask * 255
+        max_element = mask.max()
+        show_mask = (mask / max_element) * 255
         show_mask = np.tile(show_mask, (1, 1, 3))
         return show_mask
 
@@ -221,3 +224,8 @@ class Visualizer(object):
         vector = (mapper_phase.to_rgba(phase[..., 0])[:, :, :3] * 255)
         vector = vector * normal_mod + 255 * (1 - normal_mod)
         return vector
+    
+    def _visual_normal(self, normal):
+        show_normal = (1 + normal) / 2 * 255
+        return show_normal
+

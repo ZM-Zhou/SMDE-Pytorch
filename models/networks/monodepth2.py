@@ -128,9 +128,10 @@ class Monodepth2(Base_of_Network):
             disp_outputs = self.net_module['decoder'](features, x.shape)
             if self.use_packnet:
                 disp = disp_outputs[0]
+                pred_depth = 1 / disp
             else:
                 disp = torch.sigmoid(disp_outputs[0])
-            _, pred_depth = self._disp2depth(disp)
+                _, pred_depth = self._disp2depth(disp)
             if not self.mono_train:
                 pred_depth = pred_depth * 5.4
             if self.set_SCALE is not None:

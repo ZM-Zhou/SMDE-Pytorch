@@ -426,10 +426,10 @@ class DispTransformer(object):
 
     def get_warped_volume(self, volume, directs):
         """Warp the volume by disparity range with zeros padding."""
-        bs = volume.shape[0]
-        new_volume = torch.zeros_like(volume)
+        # bs = volume.shape[0]
+        new_volume = []
         for ch_idx in range(self.ch_num):
-            normal_disp = self.normal_disp_bunch[ch_idx].repeat(bs, 1, 1, 1)
+            normal_disp = self.normal_disp_bunch[ch_idx]# .repeat(bs, 1, 1, 1)
             # To adapt flip data augment
             grid_coord = normal_disp * directs + self.base_coord
             warped_frame = F.grid_sample(volume[:, :, ch_idx, ...],
@@ -437,8 +437,8 @@ class DispTransformer(object):
                                          mode='bilinear',
                                          padding_mode='zeros',
                                          align_corners=True)
-            new_volume[:, :, ch_idx, ...] = warped_frame
-        return new_volume
+            new_volume.append(warped_frame.unsqueeze(2))
+        return torch.cat(new_volume, dim=2)
 
     def get_warped_frame(self, x, directs, base_coord=None, coords_k=None):
         """Warp the images by disparity range with border padding."""
@@ -449,9 +449,10 @@ class DispTransformer(object):
             bs, h, w, _ = base_coord.shape
             ch = x.shape[1]
             directs *= coords_k
-        frame_volume = torch.zeros((bs, ch, self.ch_num, h, w)).to(x)
+        # frame_volume = torch.zeros((bs, ch, self.ch_num, h, w)).to(x)
+        frame_volume = []
         for ch_idx in range(self.ch_num):
-            normal_disp = self.normal_disp_bunch[ch_idx].repeat(bs, 1, 1, 1)
+            normal_disp = self.normal_disp_bunch[ch_idx]# .repeat(bs, 1, 1, 1)
             # To adapt flip data augment
             grid_coord = normal_disp * directs + base_coord
             warped_frame = F.grid_sample(x,
@@ -459,8 +460,8 @@ class DispTransformer(object):
                                          mode='bilinear',
                                          padding_mode='border',
                                          align_corners=True)
-            frame_volume[:, :, ch_idx, ...] = warped_frame
-        return frame_volume
+            frame_volume.append(warped_frame.unsqueeze(2))
+        return torch.cat(frame_volume, dim=2)
 
 
 class DepthProjecter(nn.Module):

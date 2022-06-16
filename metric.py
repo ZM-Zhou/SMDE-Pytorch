@@ -6,27 +6,32 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 
 
-def metric_depth_kitti(pred, gt, median_scale=False):
+def metric_depth(pred, gt, median_scale=False, kitti_mask=False,
+                 min_depth=0, max_depth=80):
     _, _, h, w = gt.shape
     pred = torch.nn.functional.interpolate(pred, [h, w],
                                            mode='bilinear',
                                            align_corners=False)
 
-    # garg crop for kitti
-    mask = gt > 0
-    crop_mask = torch.zeros_like(mask)
-    crop_mask[:, :,
-              int(0.40810811 * h):int(0.99189189 * h),
-              int(0.03594771 * w):int(0.96405229 * w)] = 1
-    mask = mask * crop_mask
-    gt = gt[mask].clamp(1e-3, 80)
+    if kitti_mask:
+        # garg crop for kitti
+        mask = gt > min_depth
+        crop_mask = torch.zeros_like(mask)
+        crop_mask[:, :,
+                int(0.40810811 * h):int(0.99189189 * h),
+                int(0.03594771 * w):int(0.96405229 * w)] = 1
+        mask = mask * crop_mask
+    else:
+        mask = (gt > min_depth) & (gt < max_depth)
+
+    gt = gt[mask].clamp(min_depth, max_depth)
     pred = pred[mask]
     if median_scale:
         gt_median = torch.median(gt)
         pred_median = torch.median(pred)
         scale = gt_median / pred_median
         pred *= scale
-    pred = pred.clamp(1e-3, 80)
+    pred = pred.clamp(min_depth, max_depth)
 
     # compute errors
     thresh = torch.max((gt / pred), (pred / gt))
@@ -236,7 +241,9 @@ class Metric(object):
         self.case_num = 0
         self.now_metric = []
         self.computer = []
-        if ('depth_kitti' in metric_name or 'depth_kitti_mono' in metric_name):
+        if ('depth_kitti' in metric_name
+                or 'depth_kitti_mono' in metric_name
+                or 'depth_ddad' in metric_name):
             self.case_names += [
                 'abs_rel', 'sq_rel', 'rms', 'log_rms', 'a1', 'a2', 'a3'
             ]
@@ -298,11 +305,11 @@ class Metric(object):
         if 'depth_kitti' in self.metric_name:
             pred = outputs[('depth', 's')]
             gt = inputs['depth']
-            res += metric_depth_kitti(pred, gt)
+            res += metric_depth(pred, gt, kitti_mask=True)
         if 'depth_kitti_mono' in self.metric_name:
             pred = outputs[('depth', 's')]
             gt = inputs['depth']
-            res += metric_depth_kitti(pred, gt, True)
+            res += metric_depth(pred, gt, median_scale=True, kitti_mask=True)
         if 'synth' in self.metric_name:
             pred = outputs[('synth', 's')]
             gt = inputs['color_o']
@@ -319,6 +326,11 @@ class Metric(object):
             pred = outputs[('depth', 's')]
             gt = inputs['depth']
             res += metric_depth_nyu(pred, gt, True)
+        if 'depth_ddad' in self.metric_name:
+            pred = outputs[('depth', 's')]
+            gt = inputs['depth']
+            res += metric_depth(pred, gt, median_scale=True, 
+                                min_depth=0, max_depth=200)
 
         self.now_metric = [a + b for (a, b) in zip(self.now_metric, res)]
         self.all_metric.append([e.item() for e in res])
