@@ -2,12 +2,12 @@ _dataset:
   type: KITTIColorDepthDataset
   params:
     split_file: data_splits/kitti/test_list.txt
-    full_size: [384, 1280]
+    full_size: [320, 1024]
     patch_size: null
     random_resize: True
     is_KTmatrix: False
-    is_fixK: True
-    normalize_params: [0.411, 0.432, 0.45]
+    is_fixK: v2
+    normalize_params: [0, 0, 0]
     output_frame: ['o']
     flip_mode: null
     color_aug: True

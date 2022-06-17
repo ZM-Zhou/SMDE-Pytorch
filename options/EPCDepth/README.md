@@ -12,7 +12,7 @@
 |--------|----------|---|--|-----|--------|-------|----|-------|--|-----|
 |Res50|288x384|Stereo||Reported|0.247|0.277|0.818|0.285|0.605|-|
 |Res50|288x384|Stereo||Official|0.321|0.584|1.207|0.374|0.501|[Baidu](https://pan.baidu.com/s/1X4TWog23u2Wk6m6H_mbApA)|
-|Res50|320x1024|Stereo||Trained|0.270|0.335|0.898|0.306|0.579|[Baidu](https://pan.baidu.com/s/1-Q8N1hPPjKz3BZXbPv_opw)|
+|Res50|288x384|Stereo||Trained|0.270|0.335|0.898|0.306|0.579|[Baidu](https://pan.baidu.com/s/1-Q8N1hPPjKz3BZXbPv_opw)|
 
 * `Reported` means that the results are reported in the paper.
 * `Official` means that the results are predicted with the models got from their Official Implementations.

@@ -1,0 +1,57 @@
+model:
+  type: Monodepth2
+  params:
+    encoder_layer: 50
+    min_depth: 0.1
+    max_depth: 100
+    image_size: [320, 1024]
+    data_mode: ["o"]
+    use_depthhints: True
+    use_packnet: False
+    set_SCALE: null
+
+loss:
+  types:
+    - type: DepthHints_PhotoLoss
+      rate: 1
+      name: photo_auto_min-0
+      args:
+        preds_n: ['proj_img_o_0_{}']
+        idents_n: [color_o]
+        hints_n: proj_img_hints_{}
+        hints_depth: hints_{}
+        pred_depth: depth_0_{}
+        target_n: color_{}
+    - type: DepthHints_PhotoLoss
+      rate: 1
+      name: photo_auto_min-1
+      args:
+        preds_n: ['proj_img_o_1_{}']
+        idents_n: [color_o]
+        hints_n: proj_img_hints_{}
+        hints_depth: hints_{}
+        pred_depth: depth_1_{}
+        target_n: color_{}
+    - type: DepthHints_PhotoLoss
+      rate: 1
+      name: photo_auto_min-2
+      args:
+        preds_n: ['proj_img_o_2_{}']
+        idents_n: [color_o]
+        hints_n: proj_img_hints_{}
+        hints_depth: hints_{}
+        pred_depth: depth_2_{}
+        target_n: color_{}
+    - type: DepthHints_PhotoLoss
+      rate: 1
+      name: photo_auto_min-3
+      args:
+        preds_n: ['proj_img_o_3_{}']
+        idents_n: [color_o]
+        hints_n: proj_img_hints_{}
+        hints_depth: hints_{}
+        pred_depth: depth_3_{}
+        target_n: color_{}
+
+pred_size: [320, 1024]
+pred_norm: [0, 0, 0]

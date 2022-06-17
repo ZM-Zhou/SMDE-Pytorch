@@ -3,6 +3,8 @@
 **Results on KITTI raw test set**
 |Backbone|Resolution|Sup|PP.|Train|Abs Rel.|Abs Sq.|RMSE|RMSElog|A1|Model|
 |--------|----------|---|---|-----|--------|-------|----|-------|--|-----|
+|Res50|192x640|Stereo|gpp|Reported|0.102|0.762|4.602|0.189|0.880|-|
+|Res50|192x640|Stereo|gpp|Official|0.102|0.764|4.603|0.189|0.880|[Baidu]()|
 |Res50|320x1024|Stereo|gpp|Reported|0.096|0.710|4.393|0.185|0.890|-|
 |Res50|320x1024|Stereo|gpp|Official|0.096|0.714|4.395|0.185|0.890|[Baidu](https://pan.baidu.com/s/1OPesveOI0us8rVEwal-pGg)|
 |Res50|320x1024|Stereo||Trained|0.094|0.680|4.333|0.181|0.894|[Baidu](https://pan.baidu.com/s/12xv0IY_hcO1YtsEZJ2Vuog)|

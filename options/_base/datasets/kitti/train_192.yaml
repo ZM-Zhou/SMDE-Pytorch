@@ -1,11 +1,18 @@
 _dataset:
+  type: KITTIColorDepthDataset
   params:
     split_file: data_splits/kitti/train_list.txt
     full_size: [192, 640]
+    patch_size: null
+    random_resize: True
     is_KTmatrix: True
     is_fixK: True
     normalize_params: [0, 0, 0]
+    output_frame: ['o']
     flip_mode: k
+    color_aug: True
+    is_depthhints: False
+    improved_test: False
+    stereo_test: False
+    read_jpg: False
     multi_out_scale: [3,2,1]
-
-_base: options/_base/datasets/kitti/_base.yaml

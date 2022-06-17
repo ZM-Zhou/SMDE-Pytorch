@@ -1,0 +1,30 @@
+train_dataset:
+  params:
+    full_size: [320, 1024]
+    is_fixK: v2
+    is_depthhints: True
+
+visual:
+  type:
+    color_s: img
+    color_o: img
+    disp_0_s: disp
+    photo_epcdepth/s: error_heat
+    synth_0_s: img
+    disp_3_s: disp
+    disp_2_s: disp
+    disp_1_s: disp
+    synth_hints_s: img
+    disp_9_s: disp
+  shape: [[color_s, color_o],
+          [synth_0_s,photo_epcdepth/s],
+          [disp_0_s, disp_1_s],
+          [disp_2_s, disp_3_s],
+          [disp_9_s, synth_hints_s]]
+
+_base: options/_base/networks/epc_depth.yaml
+_train: options/_base/datasets/kitti/train_192.yaml
+_val: options/_base/datasets/kitti/test_320.yaml
+
+
+

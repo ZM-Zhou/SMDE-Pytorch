@@ -1,9 +1,0 @@
-model:
-  type: Monodepth2
-  params:
-    image_size: [192, 640]
-
-pred_size: [192, 640]
-pred_norm: [0, 0, 0]
-
-_base: options/DepthHints/DepthHints_S_320.yaml

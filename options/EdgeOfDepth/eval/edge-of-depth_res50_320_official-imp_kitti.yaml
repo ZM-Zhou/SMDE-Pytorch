@@ -1,0 +1,6 @@
+test_dataset:
+  params:
+    read_jpg: True
+
+_test: options/_base/datasets/kitti/test_320.yaml
+_base: options/_base/networks/edge_of_depth.yaml

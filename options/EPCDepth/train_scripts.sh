@@ -16,10 +16,10 @@ CUDA_VISIBLE_DEVICES=0 python\
 # the train protocol is same with Official Imp.
 # trained in parall mode
 CUDA_VISIBLE_DEVICES=0,1 python\
- -m torch.distributed.launch --nproc_per_node=2 --master_port 28066\
+ -m torch.distributed.launch --nproc_per_node=2 --master_port 28067\
  train_dist.py\
- --name EPCDepth-S_320_bs6_parall\
- --exp_opts options/EPCDepth/EPCDepth-Res50_320.yaml\
+ --name EPCDepth-Res50_320_KITTI_S_b6_parall\
+ --exp_opts options/EPCDepth/train/epc-depth_res50_320_kitti_stereo.yaml\
  --batch_size 3\
  --beta1 0.9\
  --epoch 20\
