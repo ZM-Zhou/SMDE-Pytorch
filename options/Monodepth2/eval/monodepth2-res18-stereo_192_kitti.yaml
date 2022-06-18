@@ -1,0 +1,2 @@
+_test: options/_base/datasets/kitti/test_192.yaml
+_base: options/Monodepth2/train/monodepth2-res18_192_kitti_stereo.yaml

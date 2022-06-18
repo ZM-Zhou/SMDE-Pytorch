@@ -1,6 +1,6 @@
 # Monodepth2
 **Results on KITTI raw test set (Mono)**
-|Backbone|Resolution|Sup|Train|Abs Rel.|Abs Sq.|RMSE|RMSElog|A1|Model|
+|Backbone|Resolution|Sup|Train|Abs Rel.|Sq Rel.|RMSE|RMSElog|A1|Model|
 |------|-----|---|-----|--------|-------|----|-------|--|--------|
 |Res18|192x640|Mono|Reported|0.115|0.903|4.863|0.193|0.877|-|
 |Res18|192x640|Mono|Official|0.115|0.909|4.866|0.193|0.877|[Baidu](https://pan.baidu.com/s/1bt9JHQnwClIuHk2RP2aD_g)|
@@ -10,7 +10,7 @@
 |Res18|320x1024|Mono|Trained|0.109|0.797|4.533|0.184|0.887|[Baidu](https://pan.baidu.com/s/1T3IGfBB2c5Y2xskACRg3aQ)|
 
 **Results on KITTI raw test set (Stereo)**
-|Backbone|Resolution|Sup|Train|Abs Rel.|Abs Sq.|RMSE|RMSElog|A1|Model|
+|Backbone|Resolution|Sup|Train|Abs Rel.|Sq Rel.|RMSE|RMSElog|A1|Model|
 |------|-----|---|-----|--------|-------|----|-------|--|--------|
 |Res18|192x640|Stereo|Reported|0.109|0.873|4.960|0.209|0.864|-|
 |Res18|192x640|Stereo|Official|0.109|0.875|4.959|0.209|0.864|[Baidu](https://pan.baidu.com/s/1EUwfWK89iOKcGa2SRo3-uw)|
@@ -19,6 +19,12 @@
 |Res18|320x1024|Stereo|Official|0.107|0.851|4.765|0.201|0.874|[Baidu](https://pan.baidu.com/s/16cCslqM6Vdhye9QkuoCUSg)|
 |Res18|320x1024|Stereo|Trained|0.104|0.824|4.747|0.200|0.875|[Baidu](https://pan.baidu.com/s/1Kj9HOo15murscIsOchMEUA)|
 
+**Results on Make3D test set** (trained on KITTI)
+|Backbone|Resolution|Sup|PP|Train|Abs Rel.|Sq Rel.|RMSE|log10|Model|
+|--------|----------|---|--|-----|--------|-------|----|-------|-----|
+|Res18|192x640|Stereo||Reported|0.322|3.589|7.417|0.163|
+|Res18|192x640|Stereo||Official|0.321|3.379|7.254|0.163|[Baidu](https://pan.baidu.com/s/1EUwfWK89iOKcGa2SRo3-uw)|
+|Res18|192x640|Stereo||Trained|0.311|3.166|6.959|0.158|[Baidu](https://pan.baidu.com/s/1gwWUzUKNTWq5MuUzUzhJdg)|
 
 * `Reported` means that the results are reported in the paper.
 * `Official` means that the results are predicted with the models got from their Official Implementations.

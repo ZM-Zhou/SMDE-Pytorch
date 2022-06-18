@@ -1,5 +1,10 @@
 model:
   type: EPCDepth_Net
+  params:
+    backbone: Res50
+    max_depth: 100
+    min_depth: 0.1
+    data_graft: True
 
 loss:
   types:

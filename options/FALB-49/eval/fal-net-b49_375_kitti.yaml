@@ -1,0 +1,6 @@
+test_dataset:
+  params:
+    full_size: null
+
+_test: options/_base/datasets/kitti/test_384.yaml
+_base: options/FALB-49/train/fal-net-b49-mom_192crop_kitti_stereo.yaml

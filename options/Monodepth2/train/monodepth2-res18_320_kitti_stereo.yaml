@@ -11,6 +11,5 @@ model:
     image_size: [320, 1024]
 
 pred_size: [320, 1024]
-pred_norm: [0, 0, 0]
 
-_base: options/Monodepth2/MD2_S_192.yaml
+_base: options/Monodepth2/train/monodepth2-res18_192_kitti_stereo.yaml

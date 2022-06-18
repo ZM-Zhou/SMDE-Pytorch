@@ -1,12 +1,8 @@
 train_dataset:
   params:
     is_fixK: v2
-    output_frame: ['o']
-    normalize_params: [0, 0, 0]
-    multi_out_scale: [3,2,1]
 
 model:
-  type: Monodepth2
   params:
     data_mode: ["o"]
 
@@ -41,9 +37,6 @@ loss:
         idents_n: [color_o]
         target_n: color_{}
 
-pred_size: [192, 640]
-pred_norm: [0, 0, 0]
-
 visual:
   type:
     color_s: img
@@ -59,5 +52,5 @@ visual:
           [photo_auto_min-0/s, disp_3_s],
           [proj_img_o_0_s, color_o]]
 
-_train: options/_base/datasets/kitti_train_192.yaml
-_base: options/Monodepth2/MD2_M_192.yaml
+_train: options/_base/datasets/kitti/train_192.yaml
+_base: options/Monodepth2/train/monodepth2-res18_192_kitti_mono.yaml

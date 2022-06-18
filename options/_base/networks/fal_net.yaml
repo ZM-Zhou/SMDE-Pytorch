@@ -1,16 +1,15 @@
-train_dataset:
-  params:
-    full_size: null
-    is_KTmatrix: False
-    flip_mode: img
-
-val_dataset:
-  params:
-    full_size: null
-
 model:
   type: FAL_NetB
   params:
+    out_num: 49
+    encoder: FALB
+    decoder: Upv2
+    num_ch_dec: [64, 128, 256, 256, 256]
+    out_scales: [0]
+    min_disp: 2 
+    max_disp: 300
+    image_size: [192, 640]
+    mom_module: False
     raw_fal_arch: True
 
 loss:
@@ -59,13 +58,3 @@ loss:
 
 pred_size: [375, 1242]
 pred_norm: [0.411, 0.432, 0.45]
-
-visual:
-  type:
-    color_s: img
-    disp_s: disp
-  shape: [[color_s, disp_s]]
-
-_train: options/_base/datasets/kitti_train_384rc.yaml
-_val: options/_base/datasets/kitti_test_384.yaml
-

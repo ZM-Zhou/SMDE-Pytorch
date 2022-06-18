@@ -2,10 +2,6 @@ model:
   params:
     mom_module: True
 
-val_dataset:
-  params:
-    full_size: null
-
 loss:
   types:
     - type: SmoothLoss
@@ -26,9 +22,6 @@ loss:
         target_n: depth_ff_{}
         l1_rate: 1
 
-pred_size: [375, 1242]
-pred_norm: [0.411, 0.432, 0.45]
-
 visual:
   type:
     color_s: img
@@ -37,7 +30,6 @@ visual:
     synth_img_s: img
     mask_s: mask
     depth-ff/s: error_heat
-    
     color_o: img
     disp_o: disp
     disp_f_o: disp
@@ -51,4 +43,4 @@ visual:
           [mask_s, mask_o],
           [depth-ff/s, depth-ff/o]]
 
-_base: options/FALB-49/FALB-49.yaml
+_base: options/FALB-49/train/fal-net-b49_192crop_kitti_stereo.yaml

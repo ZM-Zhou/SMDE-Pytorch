@@ -1,0 +1,19 @@
+train_dataset:
+  params:
+    full_size: null
+    flip_mode: img
+
+val_dataset:
+  params:
+    full_size: null
+
+visual:
+  type:
+    color_s: img
+    disp_s: disp
+  shape: [[color_s, disp_s]]
+
+_train: options/_base/datasets/kitti/train_384rc.yaml
+_val: options/_base/datasets/kitti/test_384.yaml
+_base: options/_base/networks/fal_net.yaml
+

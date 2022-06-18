@@ -1,0 +1,22 @@
+train_dataset:
+  params:
+    is_fixK: v2
+
+visual:
+  type:
+    color_s: img
+    disp_0_s: disp
+    photo_auto_min-0/s: error_heat
+    proj_img_1_0_s: img
+    proj_img_-1_0_s: img
+    disp_3_s: disp
+    disp_2_s: disp
+    disp_1_s: disp
+  shape: [[color_s, disp_0_s],
+          [photo_auto_min-0/s, disp_3_s],
+          [disp_2_s, disp_1_s],
+          [proj_img_1_0_s, proj_img_-1_0_s]]
+
+_train: options/_base/datasets/kitti/train_192_mono.yaml
+_val: options/_base/datasets/kitti/test_192.yaml
+_base: options/_base/networks/monodepth2.yaml

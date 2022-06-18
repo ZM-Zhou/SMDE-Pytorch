@@ -1,8 +1,0 @@
-test_dataset:
-  params:
-    normalize_params: [0, 0, 0]
-    read_jpg: True # set if test downloaded model
-    is_fixK: v2
-
-_test: options/_base/datasets/kitti_test_320.yaml
-_base: options/Monodepth2/MD2_M_320.yaml
