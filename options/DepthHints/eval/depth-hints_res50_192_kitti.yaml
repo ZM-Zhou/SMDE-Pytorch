@@ -1,0 +1,2 @@
+_test: options/_base/datasets/kitti/test_192.yaml
+_base: options/DepthHints/train/depth-hints_res50_192_kitti_stereo.yaml

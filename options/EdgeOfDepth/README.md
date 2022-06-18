@@ -1,6 +1,6 @@
 # Edge of Depth
 **Results on KITTI raw test set**
-|Backbone|Resolution|Sup|PP|Train|Abs Rel.|Abs Sq.|RMSE|RMSElog|A1|Model|
+|Backbone|Resolution|Sup|PP|Train|Abs Rel.|Sq Rel.|RMSE|RMSElog|A1|Model|
 |--------|----------|---|--|-----|--------|-------|----|-------|--|-----|
 |Res50|320x1024|Stereo|gpp|Reported|0.091|0.646|4.244|0.177|0.898|-|
 |Res50|320x1024|Stereo|gpp|Official|0.092|0.647|4.247|0.177|0.897|[Baidu](https://pan.baidu.com/s/1yToYiunNgNQZY8tunZOmGA)|

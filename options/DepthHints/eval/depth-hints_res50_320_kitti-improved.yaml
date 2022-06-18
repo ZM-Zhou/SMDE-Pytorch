@@ -1,0 +1,7 @@
+test_dataset:
+  params:
+    split_file: data_splits/kitti/test_improved_list.txt
+    improved_test: True
+    
+_test: options/_base/datasets/kitti/test_320.yaml
+_base: options/DepthHints/train/depth-hints_res50_320_kitti_stereo.yaml

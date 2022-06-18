@@ -1,2 +1,6 @@
+model:
+  params:
+    max_depth: 10
+
 _test: options/_base/datasets/nyuv2/test_288.yaml
 _base: options/EPCDepth/train/epc-depth_res50_320_kitti_stereo.yaml

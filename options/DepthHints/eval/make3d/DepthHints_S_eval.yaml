@@ -1,6 +1,0 @@
-test_dataset:
-  params:
-    normalize_params: [0, 0, 0]
-
-_test: options/_base/datasets/make3d_test_godard.yaml
-_base: options/DepthHints/DepthHints_S_320.yaml

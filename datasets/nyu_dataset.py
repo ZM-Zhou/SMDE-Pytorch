@@ -85,8 +85,8 @@ class NYUv2_Dataset(data.Dataset):
             rgb = Image.fromarray(rgb)
             depth = Image.fromarray(depth)
 
-            rgb = self.to_tensor(self.color_resize(rgb))
-            depth = self.to_tensor(self.color_resize(depth))
+            rgb = self.normalize(self.to_tensor(self.color_resize(rgb)))
+            depth = self.to_tensor(depth)
 
             K = self.K.copy()
             K[0, :] *= self.full_size[1]
