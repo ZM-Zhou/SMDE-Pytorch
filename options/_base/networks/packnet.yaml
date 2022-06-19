@@ -1,20 +1,15 @@
-train_dataset:
-  params:
-    is_fixK: v2
-    output_frame: [-1, 1]
-    normalize_params: [0, 0, 0]
-    multi_out_scale: [3,2,1]
-
-val_dataset:
-  params:
-    is_fixK: v2
-    normalize_params: [0, 0, 0]
-
 model:
   type: Monodepth2
   params:
+    encoder_layer: 18
+    min_depth: 0.1
+    max_depth: 100
+    image_size: [192, 640]
+    data_mode: [1, -1]
+    use_depthhints: False
     use_packnet: True
-
+    set_SCALE: null
+    
 loss:
   types:
     - type: MD2_PhotoLoss
@@ -84,21 +79,3 @@ loss:
 
 pred_size: [192, 640]
 pred_norm: [0, 0, 0]
-
-visual:
-  type:
-    color_s: img
-    disp_0_s: disp
-    photo_auto_min-0/s: error_heat
-    proj_img_1_0_s: img
-    proj_img_-1_0_s: img
-    disp_3_s: disp
-    disp_2_s: disp
-    disp_1_s: disp
-  shape: [[color_s, photo_auto_min-0/s],
-          [disp_0_s, disp_1_s],
-          [disp_2_s, disp_3_s],
-          [proj_img_1_0_s, proj_img_-1_0_s]]
-
-_train: options/_base/datasets/kitti_train_192_mono.yaml
-_val: options/_base/datasets/kitti_test_192.yaml

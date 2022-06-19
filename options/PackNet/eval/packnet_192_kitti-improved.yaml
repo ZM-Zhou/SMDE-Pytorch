@@ -1,0 +1,7 @@
+test_dataset:
+  params:
+    split_file: data_splits/kitti/test_improved_list.txt
+    improved_test: True
+
+_test: options/_base/datasets/kitti/test_192.yaml
+_base: options/PackNet/train/packnet_192_kitti_mono.yaml

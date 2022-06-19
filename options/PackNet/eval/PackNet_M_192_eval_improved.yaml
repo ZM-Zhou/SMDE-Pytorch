@@ -1,9 +1,0 @@
-test_dataset:
-  params:
-    normalize_params: [0, 0, 0]
-    is_fixK: v2
-    full_size: [192, 640]
-
-_test: options/_base/datasets/kitti_test_384_improved.yaml
-_base: options/PackNet/Packnet_M_192.yaml
-

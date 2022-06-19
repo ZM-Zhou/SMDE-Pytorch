@@ -1,6 +1,6 @@
 # P2Net
 **Results on NYU v2 test set**
-|Backbone|Resolution|Sup|PP|Train|Abs Rel.|Abs Sq.|RMSE|log10|A1|Model|
+|Backbone|Resolution|Sup|PP|Train|Abs Rel.|Sq Rel.|RMSE|log10|A1|Model|
 |--------|----------|---|--|-----|--------|-------|----|-----|--|-----|
 |Res18(3f)|288x384|Mono||Reported|0.159|-|0.599|0.068|0.772|-|
 |Res18(5f)|288x384|Mono||Reported|0.150|-|0.561|0.064|0.796|-|

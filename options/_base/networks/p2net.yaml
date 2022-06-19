@@ -1,0 +1,34 @@
+model:
+  type: Monodepth2
+  params:
+    encoder_layer: 18
+    min_depth: 0.1
+    max_depth: 100
+    image_size: [192, 640]
+    data_mode: [1, -1]
+    use_depthhints: False
+    use_packnet: False
+    set_SCALE: null
+
+# not ready for training 
+loss:
+  types:
+    - type: MD2_PhotoLoss
+      rate: 1
+      name: photo_auto_min-0
+      args:
+        preds_n: ['proj_img_-1_0_{}',
+                  'proj_img_1_0_{}']
+        idents_n: [color_-1,
+                   color_1]
+        target_n: color_{}
+    - type: SmoothLoss
+      rate: 0.001
+      name: smooth-0
+      args:
+        pred_n: disp_0_{}
+        image_n: color_{}
+        relative_smo: True
+
+pred_size: [192, 640]
+pred_norm: [0, 0, 0]

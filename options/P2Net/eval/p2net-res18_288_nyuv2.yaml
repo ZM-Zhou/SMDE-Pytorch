@@ -1,0 +1,2 @@
+_test: options/_base/datasets/nyuv2/test_288.yaml
+_base: options/_base/networks/p2net.yaml

@@ -85,10 +85,10 @@ class PackDecoder(nn.Module):
 
         disp1 = self.disp1_layer(iconv1)
         
-        outputs[3] = disp4 * 0.5
-        outputs[2] = disp3 * 0.5
-        outputs[1] = disp2 * 0.5
-        outputs[0] = disp1 * 0.5
+        outputs[3] = disp4
+        outputs[2] = disp3
+        outputs[1] = disp2
+        outputs[0] = disp1
 
         return outputs
 

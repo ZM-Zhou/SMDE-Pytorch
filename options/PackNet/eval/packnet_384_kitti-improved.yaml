@@ -1,0 +1,10 @@
+test_dataset:
+  params:
+    split_file: data_splits/kitti/test_improved_list.txt
+    improved_test: True
+    normalize_params: [0, 0, 0]
+    is_fixK: v2
+
+_test: options/_base/datasets/kitti/test_384.yaml
+_base: options/PackNet/train/packnet_192_kitti_mono.yaml
+
