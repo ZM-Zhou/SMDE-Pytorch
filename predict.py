@@ -131,7 +131,7 @@ def predict():
 
     # Initialize the network
     print('->Load the pretrained model')
-    print('->model name: {}'.format(opts_dic['model']['type']))
+    # print('->model name: {}'.format(opts_dic['model']['type']))
     print('->pretrained path: {}'.format(opts.trained_model))
     network = get_model_with_opts(opts_dic, device)
     network = load_model_for_evaluate(opts.trained_model, network)
@@ -152,6 +152,7 @@ def predict():
         image_size = opts.input_size
     else:
         image_size = opts_dic['pred_size']
+    print('->resize image(s) into: {}'.format(image_size))
     resize = tf.Resize(image_size,interpolation=Image.ANTIALIAS)
 
     # Predict

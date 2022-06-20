@@ -1,6 +1,6 @@
 # train DepthHins with Stereo in 320x1024 20 epochs
 # as the official implementations
-CUDA_VISIBLE_DEVICES=2 python\
+CUDA_VISIBLE_DEVICES=0 python\
  train_dist.py\
  --name DepthHints-Res50_320_KITTI_S_B6\
  --exp_opts options/DepthHints/train/depth-hints_res50_320_kitti_stereo.yaml\
@@ -14,7 +14,7 @@ CUDA_VISIBLE_DEVICES=2 python\
 
  # train DepthHins with Stereo in 192x640 20 epochs
 # as the official implementations
-CUDA_VISIBLE_DEVICES=3 python\
+CUDA_VISIBLE_DEVICES=0 python\
  train_dist.py\
  --name DepthHints-Res50_192_KITTI_S_B6\
  --exp_opts options/DepthHints/train/depth-hints_res50_192_kitti_stereo.yaml\

@@ -6,6 +6,7 @@ import torch.nn.functional as F
 from models.backbones.resnet import ResNet_Backbone
 from models.backbones.packnet_enc import PackEncoder
 from models.base_net import Base_of_Network
+from models.decoders.hrdepth_dec import HRDepthDecoder
 from models.decoders.packnet_dec import PackDecoder
 from models.decoders.pose import PoseDecoder, PoseNet
 from models.decoders.upsample import UpSample_Layers
@@ -23,6 +24,7 @@ class Monodepth2(Base_of_Network):
             data_mode=[1, -1],  # ["o"]
             use_depthhints=False,
             use_packnet=False,
+            use_hrdec=False,
             set_SCALE=None,
     ):
         self.init_opts = locals()
@@ -33,6 +35,7 @@ class Monodepth2(Base_of_Network):
         self.data_mode = data_mode
         self.use_depthhints = use_depthhints
         self.use_packnet = use_packnet
+        self.use_hrdec = use_hrdec
         self.set_SCALE = set_SCALE
 
         self.mono_train = (1 in data_mode or -1 in data_mode)
@@ -51,7 +54,10 @@ class Monodepth2(Base_of_Network):
                 enc_ch_num = [64, 64, 128, 256, 512]
             else:
                 enc_ch_num = [64, 256, 512, 1024, 2048]
-            self.net_module['decoder'] = UpSample_Layers(enc_ch_num)
+            if self.use_hrdec:
+                self.net_module['decoder'] = HRDepthDecoder(enc_ch_num)
+            else:
+                self.net_module['decoder'] = UpSample_Layers(enc_ch_num)
 
             if self.mono_train:
                 self.net_module['pose_encoder'] = ResNet_Backbone(encoder_layer,

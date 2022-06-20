@@ -1,0 +1,6 @@
+test_dataset:
+  params:
+    full_size: [384, 1280]
+
+_test: options/_base/datasets/kitti/test_320.yaml
+_base: options/HRDepth/train/hrdepth-res18_384_kitti_mono.yaml

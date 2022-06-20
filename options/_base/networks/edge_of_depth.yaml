@@ -8,6 +8,7 @@ model:
     data_mode: ["o"]
     use_depthhints: True
     use_packnet: False
+    use_hrdec: False
     set_SCALE: null
 
 # not ready for training 

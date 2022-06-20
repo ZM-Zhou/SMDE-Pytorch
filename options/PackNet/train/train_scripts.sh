@@ -1,11 +1,10 @@
 # train PackNet with Monocular in 192x640 for 100 epochs
 # trained in parall mode
-CUDA_VISIBLE_DEVICES=6,7 python\
- -m torch.distributed.launch --nproc_per_node=2 --master_port 28067\
+CUDA_VISIBLE_DEVICES=0 python\
  train_dist.py\
  --name PackNet_192_B8_M_Pa\
  --exp_opts options/PackNet/train/packnet_192_kitti_mono.yaml\
- --batch_size 4\
+ --batch_size 8\
  --learning_rate 0.0002\
  --beta1 0.9\
  --epoch 100\
