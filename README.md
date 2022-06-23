@@ -286,4 +286,5 @@ coming soon
 [ApolloScape Dataset](http://apolloscape.auto/index.html)  
 [KITTI Dataset](http://www.cvlibs.net/datasets/kitti/index.php)  
 [NYUv2 Dataset](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html)  
-[Make3D Dataset](http://make3d.cs.cornell.edu/data.html#make3d)
+[Make3D Dataset](http://make3d.cs.cornell.edu/data.html#make3d)  
+[Cityscapes Dataset](https://www.cityscapes-dataset.com)
