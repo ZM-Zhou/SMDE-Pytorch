@@ -9,12 +9,3 @@
 * `Official` means that the results are predicted with the models got from their Official Implementations.
 * `Trained` means that the results are predicted with the models trained with this repository.
 * code for all the download links is `smde`
-
-### Evaluation Commands
-For KITTI test sets.
-```
-# For Offical
-python evaluate.py\
- --exp_opts options/EdgeOfDepth/eval/EdgeOfDepth_320_eval_OI.yaml\
- --model_path convert_models/EdgeOfDepth_320_OI/model/EdgeOfDepth_320.pth\
- -gpp # optional post-processing

@@ -23,31 +23,3 @@
 * `Official` means that the results are predicted with the models got from their Official Implementations.
 * `Trained` means that the results are predicted with the models trained with this repository.
 * code for all the download links is `smde`
-
-### Evaluation Commands
-For KITTI test sets.
-```
-# For Offical
-python evaluate.py\
- --exp_opts options/DepthHints/eval/DepthHints_S_320_eval_OI.yaml\
- --model_path convert_models/DepthHints_Res50_320_OI/model/depthhints_res50_320.pth\
- -gpp # optional post-processing
-
-# For Trained
-python evaluate.py\
- --exp_opts options/DepthHints/eval/DepthHints_S_320_eval.yaml\
- --model_path convert_models/DepthHints_Res50_320_bs6/model/best_model.pth\
- -gpp # optional post-processing
-
-# For Offical (Improved)
-python evaluate.py\
- --exp_opts options/DepthHints/eval/DepthHInts_S_320_eval_improved_OI.yaml\
- --model_path convert_models/DepthHints_Res50_320_OI/model/depthhints_res50_320.pth\
- -gpp # optional post-processing
-
-# For Trained (Improved)
-python evaluate.py\
- --exp_opts  options/DepthHints/eval/DepthHints_S_320_eval_improved.yaml\
- --model_path convert_models/DepthHints_Res50_320_bs6/model/best_model.pth\
- -gpp # optional post-processing
-```

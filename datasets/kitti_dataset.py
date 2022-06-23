@@ -44,36 +44,39 @@ class KITTIColorDepthDataset(data.Dataset):
             full_size=None,
             patch_size=None,
             random_resize=True,
-            is_KTmatrix=False,
-            is_fixK=False,
             normalize_params=[0.411, 0.432, 0.45],
-            output_frame=['o'],  # -1, 1
             flip_mode=None,
             color_aug=True,
-            is_depthhints=False,
-            improved_test=False,
+            output_frame=['o'],  # -1, 1
+            multi_out_scale=None,
+            load_KTmatrix=False,
+            load_depth=True,
+            load_depthhints=False,
+            is_fixK=False,
             stereo_test=False,
-            read_jpg=False,
-            multi_out_scale=None):
+            jpg_test=False,
+            improved_test=False,):
         super().__init__()
         self.init_opts = locals()
 
-        self.dataset_mode = dataset_mode
         self.dataset_dir = Path.get_path_of('kitti')
+        self.dataset_mode = dataset_mode
         self.split_file = split_file
         self.full_size = full_size
         self.patch_size = patch_size
         self.random_resize = random_resize
-        self.is_KTmatrix = is_KTmatrix
-        self.is_fixK = is_fixK
-        self.output_frame = output_frame
         self.flip_mode = flip_mode
         self.color_aug = color_aug
-        self.is_depthhints = is_depthhints
+        self.output_frame = output_frame
+        self.multi_out_scale = multi_out_scale
+        self.load_KTmatrix = load_KTmatrix
+        self.load_depth = load_depth
+        self.load_depthhints = load_depthhints
+        self.is_fixK = is_fixK
         self.improved_test = improved_test
         self.stereo_test = stereo_test
-        self.read_jpg = read_jpg
-        self.multi_out_scale = multi_out_scale
+        self.jpg_test = jpg_test
+        
         self.file_list = self._get_file_list(split_file)
 
         # Initialize transforms
@@ -95,7 +98,7 @@ class KITTIColorDepthDataset(data.Dataset):
                 self.color_resize = NoneTransform()
 
         # Change the root path if use jpg images
-        if self.read_jpg:
+        if self.jpg_test:
             if dataset_mode == 'test':
                 self.dataset_dir = Path.get_path_of('eigen_kitti_test_jpg')
             else:
@@ -131,7 +134,7 @@ class KITTIColorDepthDataset(data.Dataset):
         target_path = base_path_list[0]
         color_side_path = target_path.format(
             *self.DATA_NAME_DICT['color_{}'.format(data_side)])
-        if self.read_jpg:
+        if self.jpg_test:
             color_side_path = color_side_path.replace('.png', '.jpg')
         inputs['color_s_raw'] = get_input_img(color_side_path)
 
@@ -163,13 +166,14 @@ class KITTIColorDepthDataset(data.Dataset):
         if self.gt_depths is not None:
             inputs['depth'] = self.gt_depths[f_idx]
         else:
-            depth_path = target_path.format(*self.DATA_NAME_DICT['depth'])
-            inputs['depth'] = get_input_depth(depth_path, date_path, data_side)
+            if self.load_depth:
+                depth_path = target_path.format(*self.DATA_NAME_DICT['depth'])
+                inputs['depth'] = get_input_depth(depth_path, date_path, data_side)
 
         if self.stereo_test:
             color_path = base_path_list[0].format(*self.DATA_NAME_DICT[
                 'color_{}'.format('r' if data_side == 'l' else 'l')])
-            if self.read_jpg:
+            if self.jpg_test:
                 color_path = color_path.replace('.png', '.jpg')
             inputs['color_o_raw'] = get_input_img(color_path)
 
@@ -181,12 +185,12 @@ class KITTIColorDepthDataset(data.Dataset):
                 else:
                     color_path = base_path_list[0].format(*self.DATA_NAME_DICT[
                         'color_{}'.format('r' if data_side == 'l' else 'l')])
-                if self.read_jpg:
+                if self.jpg_test:
                     color_path = color_path.replace('.png', '.jpg')
                 inputs['color_{}_raw'.format(self.output_frame[idx_frame])]\
                     = get_input_img(color_path)
 
-            if self.is_KTmatrix:
+            if self.load_KTmatrix:
                 intric = np.zeros((4, 4))
                 intric[:3, :3] = intrinsic[:, :3]
                 intric[3, 3] = 1
@@ -214,7 +218,7 @@ class KITTIColorDepthDataset(data.Dataset):
                     .to(torch.float)
                 inputs['T'] = extric
 
-            if self.is_depthhints:
+            if self.load_depthhints:
                 hints_l_path = base_path.format(
                     *self.DATA_NAME_DICT['hints_l'])
                 hints_l_path = hints_l_path.replace(
@@ -244,23 +248,23 @@ class KITTIColorDepthDataset(data.Dataset):
                         is_flip = False
                         inputs['color_o_raw'], inputs['color_s_raw'] =\
                             inputs['color_s_raw'], inputs['color_o_raw']
-                        if self.is_depthhints:
+                        if self.load_depthhints:
                             inputs['hints_s'], inputs['hints_o'] = \
                                 inputs['hints_o'], inputs['hints_s']
                         inputs['direct'] = -inputs['direct']
-                        if self.is_KTmatrix:
+                        if self.load_KTmatrix:
                             inputs['T'][0, 3] = -inputs['T'][0, 3]
                     elif switch_img and not switch_k:
                         is_flip = True
                         inputs['color_o_raw'], inputs['color_s_raw'] =\
                             inputs['color_s_raw'], inputs['color_o_raw']
-                        if self.is_depthhints:
+                        if self.load_depthhints:
                             inputs['hints_s'], inputs['hints_o'] = \
                                 inputs['hints_o'], inputs['hints_s']
                     elif switch_img and not switch_k:
                         is_flip = True
                         inputs['direct'] = -inputs['direct']
-                        if self.is_KTmatrix:
+                        if self.load_KTmatrix:
                             inputs['T'][0, 3] = -inputs['T'][0, 3]
                     else:
                         is_flip = False
@@ -271,12 +275,12 @@ class KITTIColorDepthDataset(data.Dataset):
                         if flip_img:
                             inputs['color_o_raw'], inputs['color_s_raw'] =\
                                 inputs['color_s_raw'], inputs['color_o_raw']
-                            if self.is_depthhints:
+                            if self.load_depthhints:
                                 inputs['hints_s'], inputs['hints_o'] = \
                                     inputs['hints_o'], inputs['hints_s']
                         else:
                             inputs['direct'] = -inputs['direct']
-                            if self.is_KTmatrix:
+                            if self.load_KTmatrix:
                                 inputs['T'][0, 3] = -inputs['T'][0, 3]
 
         # Process data
@@ -312,8 +316,7 @@ class KITTIColorDepthDataset(data.Dataset):
                 self.depth_resize = NoneTransform()
             # crop
             crop_params = self.crop.get_params(img_size, self.patch_size,
-                                               scale_factor, self.canny,
-                                               inputs['color_s_raw'])
+                                               scale_factor)
             # color jit
             if self.color_aug and random.uniform(0, 1) < 0.5:
                 gamma_param = random.uniform(0.8, 1.2)

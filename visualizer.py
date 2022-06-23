@@ -44,6 +44,7 @@ class Visualizer(object):
             'error_heat': self._visual_heatjet,
             'error_pn': self._visual_pn,
             'mask': self._visual_mask,
+            'mask_raw': self._visual_mask_raw,
             'mask_error_pn': self._visual_mpn,
             'vector': self._visual_vector,
             'normal': self._visual_normal
@@ -56,6 +57,7 @@ class Visualizer(object):
             'error_heat': 'bilinear',
             'error_pn': 'bilinear',
             'mask': 'nearest',
+            'mask_raw': 'nearest',
             'mask_error_pn': 'nearest',
             'vector': 'nearest',
             'normal': 'nearest'
@@ -211,6 +213,10 @@ class Visualizer(object):
         max_element = mask.max()
         show_mask = (mask / max_element) * 255
         show_mask = np.tile(show_mask, (1, 1, 3))
+        return show_mask
+    
+    def _visual_mask_raw(self, mask):
+        show_mask = np.tile(mask, (1, 1, 3))
         return show_mask
 
     def _visual_vector(self, vector):

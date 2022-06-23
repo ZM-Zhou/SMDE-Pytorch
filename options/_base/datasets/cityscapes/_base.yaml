@@ -1,0 +1,13 @@
+_dataset:
+  type: CityscapesColorDataset
+  params:
+    split_file: null
+    crop_coords: [0, 0, 768, 2048]
+    full_size: null
+    patch_size: null
+    normalize_params: [0.411, 0.432, 0.45]
+    flip_mode: null
+    load_KTmatrix: False
+    load_disp: False
+    load_semantic: True
+    fuse_kitti: False

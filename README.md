@@ -103,6 +103,7 @@ Before evaluating or training the methods, you should download the used datasets
 |KITTI|✔ (175GB)|✔ (2GB)|
 |NYU v2||✔ (2GB)|
 |Mak3D||✔ (200MB)|
+|Cityscapes|✔ (130GB)||
 
 ##### Set data path
 We give an example `path_example.py` for setting the path in the repository.
@@ -145,6 +146,28 @@ the folder for each dataset should be organized like:
 |   |---img-10.21op2-p-139t000.jpg
 |   |---...
 ```
+```
+<root of cityscapes>
+|---leftImg8bit
+|   |---train
+|   |   |---aachen
+|   |   |   |---aachen_000000_000019_leftImg8bit.png
+|   |   |   |---aachen_000001_000019_leftImg8bit.png
+|   |   |   |---...
+|   |   |---bochum
+|   |   |---...
+|   |---train_extra
+|   |   |---augsburg
+|   |   |---...
+|   |---test
+|   |---val
+|---rightImg8bit
+|   |--- ...
+|---camera
+|   |--- ...
+|---disparity
+|   |--- ...
+```
 ##### KITTI
 For training the methods on the KITTI dataset (the Eigen split), you should download the entire KITTI dataset (about 175GB) by:
 ```
@@ -156,8 +179,16 @@ cd <save path>
 unzip "*.zip"
 ```
 
-For evaluating the methods on the KITTI (the Eigen split), you should further generate the `gt_depth` file as done in the [Monodepth2](https://github.com/nianticlabs/monodepth2).
-As an alternative, we provide the Eigen test subset (with `.png` images [Here](https://pan.baidu.com/s/16qfBtfHp61d8EOFQFv-OWw) or with `.jpg` images [Here](https://pan.baidu.com/s/17w77UwXecqJf8gV3a26hDQ), about 2GB) and the generated `gt_depth` file and the `gt_depth` files for the people who just want to do the evaluation.
+For evaluating the methods on the KITTI (Eigen raw test set), you should further generate the ground-truth depth file by (as done in the [Monodepth2](https://github.com/nianticlabs/monodepth2)):
+
+```
+python datasets/utils/export_kitti_gt_depth.py --data_path <root of KITTI> --split raw
+```
+If you want to evaluate the method on the KITTI improved test set, you should download the `annotated depth maps` (about 15GB) at [Here](http://www.cvlibs.net/datasets/kitti/eval_depth.php?benchmark=depth_prediction) and unzip it. Then you could generate the imporved ground-truth depth file by:
+```
+python datasets/utils/export_kitti_gt_depth.py --data_path <root of KITTI> --split improved
+```
+As an alternative, we provide the Eigen test subset (with `.png` images [Here](https://pan.baidu.com/s/16qfBtfHp61d8EOFQFv-OWw) or with `.jpg` images [Here](https://pan.baidu.com/s/17w77UwXecqJf8gV3a26hDQ), about 2GB) and the generated `gt_depth` files for the people who just want to do the evaluation.
 
 ##### NYUv2
 We use the NYUv2 test set as done in P2Net and EPCDepth, which could be downloaded in [Here](https://pan.baidu.com/s/1AKv_V59WclGHULt-casXaA)
@@ -165,6 +196,22 @@ We use the NYUv2 test set as done in P2Net and EPCDepth, which could be download
 ##### Make3D
 We use the Make3D test set for evaluating some methods, which could be downloaded in [Here](http://make3d.cs.cornell.edu/data.html#make3d)
 
+##### Cityscapes
+Cityscapes could be used to jointly train the model with KITTI, which is helpful to improve the performance of the model. If you want to use the Cityscapes, please download the following parts of the dataset at [Here](https://www.cityscapes-dataset.com/downloads/) and unzip them to your `<root of cityscapes>` (Note: For some files, you should apply for download permission by email.):
+```
+leftImg8bit_trainvaltest.zip (11GB)
+leftImg8bit_trainextra.zip (44GB)
+rightImg8bit_trainvaltest.zip (11GB)
+rightImg8bit_trainextra.zip (44GB)
+disparity_trainvaltest.zip (3.5GB)
+disparity_trainextra.zip (15GB)
+camera_trainvaltest.zip (2MB)
+camera_trainextra.zip (8MB)
+```
+Then, please generate the camera parameter matrices by:
+```
+python datasets/utils/export_cityscapes_matrix.py
+```
 ### Evaluate the methods
 To evaluate the methods on the prepared dataset, you could simply use 
 ```

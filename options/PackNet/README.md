@@ -19,29 +19,3 @@
 * `Official` means that the results are predicted with the models got from their Official Implementations.
 * `Trained` means that the results are predicted with the models trained with this repository.
 * code for all the download links is `smde`
-
-### Evaluation Commands
-For KITTI test sets.
-```
-# For Offical in 192x640
-python evaluate.py\
- --exp_opts options/PackNet/eval/PackNet_M_192_eval.yaml\
- --model_path convert_models/PackNet_M_192_OI/model/PackNet_M_192.pth\
- --metric_name depth_kitti_mono
-
-# For Offical in 384x1280 (scale aware)
-python evaluate.py\
- --exp_opts options/PackNet/eval/PackNet_M_384_eval.yaml\
- --model_path convert_models/PackNet_Mv_CS+K_384_OI/model/PackNet_Mv_CS+K_384.pth
-
-# For Offical in 192x640 (Improved)
-python evaluate.py\
- --exp_opts options/PackNet/eval/PackNet_M_192_eval_improved.yaml\
- --model_path convert_models/PackNet_M_192_OI/model/PackNet_M_192.pth\
- --metric_name depth_kitti_mono
-
-# For Offical in 384x1280 (scale aware) (Improved)
-python evaluate.py\
- --exp_opts options/PackNet/eval/PackNet_M_384_eval_improved.yaml\
- --model_path convert_models/PackNet_Mv_CS+K_384_OI/model/PackNet_Mv_CS+K_384.pth
-```

@@ -5,14 +5,15 @@ _dataset:
     full_size: [192, 640]
     patch_size: null
     random_resize: True
-    is_KTmatrix: False
-    is_fixK: v2
     normalize_params: [0, 0, 0]
-    output_frame: ['o']
     flip_mode: null
     color_aug: True
-    is_depthhints: False
-    improved_test: False
-    stereo_test: False
-    read_jpg: False
+    output_frame: ['o']
     multi_out_scale: null
+    load_KTmatrix: False
+    load_depth: True
+    load_depthhints: False
+    is_fixK: v2
+    stereo_test: False
+    jpg_test: False
+    improved_test: False

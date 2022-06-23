@@ -1,0 +1,13 @@
+_dataset:
+  type: CityscapesColorDataset
+  params:
+    split_file: data_splits/cityscapes/train_extra_stereo_list.txt
+    crop_coords: [0, 0, 768, 2048]
+    full_size: [384, 1280]
+    patch_size: [192, 640]
+    normalize_params: [0.411, 0.432, 0.45]
+    flip_mode: k
+    load_KTmatrix: True
+    load_disp: False
+    load_semantic: False
+    fuse_kitti: True

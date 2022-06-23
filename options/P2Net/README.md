@@ -12,13 +12,3 @@
 * `Official` means that the results are predicted with the models got from their Official Implementations.
 * `Trained` means that the results are predicted with the models trained with this repository.
 * code for all the download links is `smde`
-
-### Evaluation Commands
-For NYUv2 test set.
-```
-# For Offical
-python evaluate.py\
- --exp_opts options/P2Net/eval/nyuv2/P2Net_288_eval.yaml\
- --model_path convert_models/P2Net_NYUv2_288_OI/model/P2Net_NYUv2_288.pth\
- --metric_name depth_nyu_mono\
- -gpp # optional post-processing

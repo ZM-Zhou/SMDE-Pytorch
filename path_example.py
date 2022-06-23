@@ -9,5 +9,7 @@ class Path(object):
             return '/zhouzm/Datasets/Make3D'
         elif name == 'nyuv2':
             return '/zhouzm/Datasets/NYU_v2/nyu_test'
+        elif name == 'cityscapes':
+            return '/zhouzm/Datasets/NYU_v2/cityscapes'
         else:
             raise NotImplementedError

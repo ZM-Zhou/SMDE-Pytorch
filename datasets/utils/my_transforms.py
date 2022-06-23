@@ -12,9 +12,7 @@ class BatchRandomCrop(tf.RandomCrop):
     @staticmethod
     def get_params(img_size,
                    output_size,
-                   scale_factor,
-                   canny_func=None,
-                   image=None):
+                   scale_factor):
         (h, w) = img_size
         # w, h = int(w * scale_factor), int(h * scale_factor)
         th, tw = output_size
@@ -29,30 +27,9 @@ class BatchRandomCrop(tf.RandomCrop):
         if w == tw_resize and h == th_resize:
             return 0, 0, h, w
 
-        np_img = np.array(image.convert('L'))
-        if canny_func is not None:
-            canny_check = False
-            canny_score = np.mean((canny_func(np_img)))
-            # print("I:", canny_score)
-        else:
-            canny_check = True
+        i = torch.randint(0, h - th_resize + 1, size=(1, )).item()
+        j = torch.randint(0, w - tw_resize + 1, size=(1, )).item()
 
-        retry_num = 0
-        while True:
-            i = torch.randint(0, h - th_resize + 1, size=(1, )).item()
-            j = torch.randint(0, w - tw_resize + 1, size=(1, )).item()
-            if canny_check:
-                break
-            else:
-                patch = np_img[i:i + th_resize, j:j + tw_resize]
-                patch_canny_score = np.mean(canny_func(patch))
-                # print("P:", patch_canny_score)
-                retry_num += 1
-                if patch_canny_score >= canny_score:
-                    break
-                if retry_num > 10:
-                    break
-        # print(th, tw)
         return int(i * scale_factor), int(j * scale_factor), th, tw
 
     def forward(self, img, params):
