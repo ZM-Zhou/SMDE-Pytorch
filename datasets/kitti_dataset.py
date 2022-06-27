@@ -108,13 +108,13 @@ class KITTIColorDepthDataset(data.Dataset):
         self.gt_depths = None
         if len(self.file_list) == 697 or len(self.file_list) == 652:
             if self.improved_test:
-                gt_path = os.path.join(self.dataset_dir, 'gt_depths_eigen.npz')
+                gt_path = os.path.join(self.dataset_dir, 'gt_depths_improved.npz')
                 self.gt_depths = np.load(gt_path,
                                          fix_imports=True,
                                          encoding='latin1',
                                          allow_pickle=True)['data']
             else:
-                gt_path = os.path.join(self.dataset_dir, 'gt_depths.npz')
+                gt_path = os.path.join(self.dataset_dir, 'gt_depths_raw.npz')
                 self.gt_depths = np.load(gt_path,
                                          fix_imports=True,
                                          encoding='latin1',

@@ -2,7 +2,7 @@ train_dataset:
   params:
     full_size: [320, 1024]
     is_fixK: v2
-    is_depthhints: True
+    load_depthhints: True
 
 visual:
   type:

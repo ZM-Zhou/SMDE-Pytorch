@@ -1,7 +1,7 @@
 train_dataset:
   params:
     is_fixK: v2
-    is_depthhints: True
+    load_depthhints: True
 
 model:
   params:
