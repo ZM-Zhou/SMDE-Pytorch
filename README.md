@@ -41,6 +41,7 @@ conda activate pytorch170cu11
 - [x] EPCDepth (ICCV 2021)
 - [x] HR-Depth (AAAI 2021)
 - [ ] SuperDepth (ICRA 2019)
+- [ ] FSRE-Depth (ICCV 2021)
 
 ## Evaluation Results
 We give the performances of the methods on **the KITTI raw test set** (an outdoor dataset) for helping you choose the model. More pretrained models are given on their pages (click their names in the above table).
@@ -188,7 +189,7 @@ If you want to evaluate the method on the KITTI improved test set, you should do
 ```
 python datasets/utils/export_kitti_gt_depth.py --data_path <root of KITTI> --split improved
 ```
-As an alternative, we provide the Eigen test subset (with `.png` images [Here](https://pan.baidu.com/s/16qfBtfHp61d8EOFQFv-OWw) or with `.jpg` images [Here](https://pan.baidu.com/s/17w77UwXecqJf8gV3a26hDQ), about 2GB) and the generated `gt_depth` files for the people who just want to do the evaluation.
+As an alternative, we provide the Eigen test subset (with `.png` images [Here](https://pan.baidu.com/s/1NejtxajjJt6pQ-VIRJDcUg) or with `.jpg` images [Here](https://pan.baidu.com/s/1AMkcaxh1Ua4cL1VsTXt4Ww), about 2GB) and the generated `gt_depth` files for the people who just want to do the evaluation.
 
 ##### NYUv2
 We use the NYUv2 test set as done in P2Net and EPCDepth, which could be downloaded in [Here](https://pan.baidu.com/s/1AKv_V59WclGHULt-casXaA)
