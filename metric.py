@@ -7,7 +7,7 @@ from torch.autograd import Variable
 
 
 def metric_depth(pred, gt, median_scale=False, kitti_mask=False,
-                 min_depth=0, max_depth=80):
+                 cityscapes_mask=False, min_depth=0, max_depth=80):
     _, _, h, w = gt.shape
     pred = torch.nn.functional.interpolate(pred, [h, w],
                                            mode='bilinear',
@@ -20,6 +20,12 @@ def metric_depth(pred, gt, median_scale=False, kitti_mask=False,
         crop_mask[:, :,
                 int(0.40810811 * h):int(0.99189189 * h),
                 int(0.03594771 * w):int(0.96405229 * w)] = 1
+        mask = mask * crop_mask
+    elif cityscapes_mask:
+        assert gt.shape[2] == 768 and gt.shape[3] == 2048
+        mask = (gt > min_depth) & (gt < max_depth)
+        crop_mask = torch.zeros_like(mask)
+        crop_mask[:, :, 256:, 192:1856] = 1
         mask = mask * crop_mask
     else:
         mask = (gt > min_depth) & (gt < max_depth)
@@ -243,7 +249,8 @@ class Metric(object):
         self.computer = []
         if ('depth_kitti' in metric_name
                 or 'depth_kitti_mono' in metric_name
-                or 'depth_ddad' in metric_name):
+                or 'depth_ddad' in metric_name
+                or 'depth_cityscapes_mono' in metric_name):
             self.case_names += [
                 'abs_rel', 'sq_rel', 'rms', 'log_rms', 'a1', 'a2', 'a3'
             ]
@@ -310,6 +317,11 @@ class Metric(object):
             pred = outputs[('depth', 's')]
             gt = inputs['depth']
             res += metric_depth(pred, gt, median_scale=True, kitti_mask=True)
+        if 'depth_cityscapes_mono' in self.metric_name:
+            pred = outputs[('depth', 's')]
+            gt = inputs['depth']
+            res += metric_depth(pred, gt, cityscapes_mask=True,
+                                median_scale=True)
         if 'synth' in self.metric_name:
             pred = outputs[('synth', 's')]
             gt = inputs['color_o']

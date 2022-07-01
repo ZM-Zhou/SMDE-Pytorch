@@ -26,7 +26,9 @@ conda activate pytorch170cu11
 |[EdgeOfDepth](options/EdgeOfDepth)| 2020 CVPR| ✔| | [Link](https://openaccess.thecvf.com/content_CVPR_2020/html/Zhu_The_Edge_of_Depth_Explicit_Constraints_Between_Segmentation_and_Depth_CVPR_2020_paper.html)| [Link](https://github.com/TWJianNuo/EdgeDepth-Release)|
 |[PackNet](options/PackNet)| 2020 CVPR| ✔| | [Link](https://openaccess.thecvf.com/content_CVPR_2020/html/Guizilini_3D_Packing_for_Self-Supervised_Monocular_Depth_Estimation_CVPR_2020_paper.html)| [Link](https://github.com/TRI-ML/packnet-sfm)|
 |[EPCDepth](options/EPCDepth) | 2021 ICCV| ✔| ✔| [Link](https://arxiv.org/abs/2109.12484)| [Link](https://github.com/prstrive/EPCDepth)|
+|[FSRE-Depth](options/EPCDepth) | 2021 ICCV| ✔| | [Link](https://openaccess.thecvf.com/content/ICCV2021/html/Jung_Fine-Grained_Semantics-Aware_Representation_Enhancement_for_Self-Supervised_Monocular_Depth_Estimation_ICCV_2021_paper.html)| [Link](https://github.com/hyBlue/FSRE-Depth)|
 |[HRDepth](options/HRDepth) | 2021 AAAI| ✔| ✔| [Link](https://ojs.aaai.org/index.php/AAAI/article/view/16329)| [Link](https://github.com/shawLyu/HR-Depth)|
+|[ManyDepth](options/ManyDepth) | 2021 CVPR| ✔| | [Link](https://arxiv.org/abs/2104.14540)| [Link](https://github.com/nianticlabs/manydepth)|
 
 
 * `Test` : You could predict depths with their pretrained models provided by their official implementations. We have tested their performances and more details are given on their pages (click their names in the table).
@@ -41,18 +43,21 @@ conda activate pytorch170cu11
 - [x] EPCDepth (ICCV 2021)
 - [x] HR-Depth (AAAI 2021)
 - [ ] SuperDepth (ICRA 2019)
-- [ ] FSRE-Depth (ICCV 2021)
+- [x] FSRE-Depth (ICCV 2021)
+- [x] ManyDepth (CVPR 2022)
 
 ## Evaluation Results
 We give the performances of the methods on **the KITTI raw test set** (an outdoor dataset) for helping you choose the model. More pretrained models are given on their pages (click their names in the above table).
 |Method|Info.|Sup|Trained|Abs Rel.|Sq Rel.|RMSE|RMSElog|A1|
 |------|-----|---|-------|--------|-------|----|-------|--|
+|ManyDepth(Mono)|Res18+192x640|Mono|[Offical](https://pan.baidu.com/s/168qFsk68t0117PXwcagtqQ)|0.118|0.891|4.763|0.192|0.871|
 |PackNet|PackV1+192x640|Mono|[Official](https://pan.baidu.com/s/1d_uL1q2_bsGEskFDcEfBGA)|0.110|0.836|4.655|0.187|0.881|
 |Monodepth2|Res18+320x1024|Mono|[Trained](https://pan.baidu.com/s/1T3IGfBB2c5Y2xskACRg3aQ)|0.109|0.797|4.533|0.184|0.888|
+|FSRE-Depth|Res18+192x640|Mono|[Official](https://pan.baidu.com/s/1u9VhbIPN67E12oqLSFzGiA)|0.105|0.711|4.546|0.182|0.886|
 |Monodepth2|Res18+320x1024|Stereo|[Trained](https://pan.baidu.com/s/1Kj9HOo15murscIsOchMEUA)|0.104|0.824|4.747|0.200|0.875|
+|HRDepth|Res18+384x1280|Mono|[Trained](https://pan.baidu.com/s/1QJhkNhXTRUQimwomRoP96Q)|0.102|0.719|4.396|0.178|0.897|
 |FAL-NetB|N=49+375x1242|Stereo|[Trained](https://pan.baidu.com/s/1PhUJ_4s0nm41a49viZRczg)|0.099|0.625|4.197|0.182|0.885|
 |DepthHints|Res50+320x1024|Stereo|[Trained](https://pan.baidu.com/s/12xv0IY_hcO1YtsEZJ2Vuog)|0.094|0.680|4.333|0.181|0.894|
-|HRDepth|Res18+384x1280|Mono|[Trained](https://pan.baidu.com/s/1QJhkNhXTRUQimwomRoP96Q)|0.102|0.719|4.396|0.178|0.897|
 |EdgeOfDepth|Res50+320x1024|Stereo|[Official](https://pan.baidu.com/s/1yToYiunNgNQZY8tunZOmGA)|0.092|0.647|4.247|0.177|0.897|
 |EPCDepth|Res50+320x1024|Stereo|[Trained](https://pan.baidu.com/s/1-Q8N1hPPjKz3BZXbPv_opw)|0.090|0.682|4.282|0.178|0.903|
 
@@ -104,7 +109,7 @@ Before evaluating or training the methods, you should download the used datasets
 |KITTI|✔ (175GB)|✔ (2GB)|
 |NYU v2||✔ (2GB)|
 |Mak3D||✔ (200MB)|
-|Cityscapes|✔ (130GB)||
+|Cityscapes|✔ (130GB)|✔ (35GB)|
 
 ##### Set data path
 We give an example `path_example.py` for setting the path in the repository.
@@ -126,8 +131,8 @@ the folder for each dataset should be organized like:
 |   '''
 |---2011_09_28
 |   |--- ...
-|---gt_depths.npz (for raw Eigen test set)
-|---gt_depths_eigen.npz (for improved Eigen test set)
+|---gt_depths_raw.npz (for raw Eigen test set)
+|---gt_depths_improved.npz (for improved Eigen test set)
 ```
 ```
 <root of NYU v2 (just test set)>
@@ -161,12 +166,18 @@ the folder for each dataset should be organized like:
 |   |   |---augsburg
 |   |   |---...
 |   |---test
+|   |   |---...
 |   |---val
+|   |   |---...
 |---rightImg8bit
 |   |--- ...
 |---camera
 |   |--- ...
 |---disparity
+|   |--- ...
+|---gt_depths (for evaluation)
+|   |---000_depth.npy
+|   |---001_depth.npy
 |   |--- ...
 ```
 ##### KITTI
@@ -200,19 +211,20 @@ We use the Make3D test set for evaluating some methods, which could be downloade
 ##### Cityscapes
 Cityscapes could be used to jointly train the model with KITTI, which is helpful to improve the performance of the model. If you want to use the Cityscapes, please download the following parts of the dataset at [Here](https://www.cityscapes-dataset.com/downloads/) and unzip them to your `<root of cityscapes>` (Note: For some files, you should apply for download permission by email.):
 ```
-leftImg8bit_trainvaltest.zip (11GB)
+leftImg8bit_trainvaltest.zip (11GB)  <- If just do the evluation, download this
 leftImg8bit_trainextra.zip (44GB)
 rightImg8bit_trainvaltest.zip (11GB)
 rightImg8bit_trainextra.zip (44GB)
 disparity_trainvaltest.zip (3.5GB)
 disparity_trainextra.zip (15GB)
-camera_trainvaltest.zip (2MB)
+camera_trainvaltest.zip (2MB)  <- If just do the evluation, download this
 camera_trainextra.zip (8MB)
 ```
 Then, please generate the camera parameter matrices by:
 ```
 python datasets/utils/export_cityscapes_matrix.py
 ```
+You also need to download the prepared ground-truth depth [Here](https://storage.googleapis.com/niantic-lon-static/research/manydepth/gt_depths_cityscapes.zip) which is provided by Watson in ManyDepth.
 ### Evaluate the methods
 To evaluate the methods on the prepared dataset, you could simply use 
 ```
@@ -284,6 +296,8 @@ coming soon
 [PackNet](https://github.com/TRI-ML/packnet-sfm)  
 [P2Net](https://github.com/svip-lab/Indoor-SfMLearner)  
 [HRDepth](https://github.com/shawLyu/HR-Depth)  
+[FSRE-Depth](https://github.com/hyBlue/FSRE-Depth)  
+[ManyDepth](https://github.com/nianticlabs/manydepth)  
 [ApolloScape Dataset](http://apolloscape.auto/index.html)  
 [KITTI Dataset](http://www.cvlibs.net/datasets/kitti/index.php)  
 [NYUv2 Dataset](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html)  

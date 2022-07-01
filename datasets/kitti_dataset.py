@@ -177,6 +177,34 @@ class KITTIColorDepthDataset(data.Dataset):
                 color_path = color_path.replace('.png', '.jpg')
             inputs['color_o_raw'] = get_input_img(color_path)
 
+        if self.load_KTmatrix:
+            intric = np.zeros((4, 4))
+            intric[:3, :3] = intrinsic[:, :3]
+            intric[3, 3] = 1
+            if self.full_size is not None:
+                intric[0, :] *= self.full_size[1] / img_W
+                intric[1, :] *= self.full_size[0] / img_H
+            if self.is_fixK:
+                if data_side == 'l':
+                    baseline = -0.54
+                else:
+                    baseline = 0.54
+                extric = torch.tensor([[1, 0, 0, baseline], [0, 1, 0, 0],
+                                        [0, 0, 1, 0], [0, 0, 0, 1]])
+            else:
+                if data_side == 'l':
+                    factor = -1
+                else:
+                    factor = 1
+                extric = torch.tensor(
+                    [[1, 0, 0, factor * width_to_baseline[img_W]],
+                        [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+
+            inputs['K'] = torch.from_numpy(intric).to(torch.float)
+            inputs['inv_K'] = torch.from_numpy(np.linalg.pinv(intric))\
+                .to(torch.float)
+            inputs['T'] = extric
+
         if self.dataset_mode == 'train':
             for idx_frame, base_path in enumerate(base_path_list[1:]):
                 if self.output_frame[idx_frame] != 'o':
@@ -189,34 +217,6 @@ class KITTIColorDepthDataset(data.Dataset):
                     color_path = color_path.replace('.png', '.jpg')
                 inputs['color_{}_raw'.format(self.output_frame[idx_frame])]\
                     = get_input_img(color_path)
-
-            if self.load_KTmatrix:
-                intric = np.zeros((4, 4))
-                intric[:3, :3] = intrinsic[:, :3]
-                intric[3, 3] = 1
-                if self.full_size is not None:
-                    intric[0, :] *= self.full_size[1] / img_W
-                    intric[1, :] *= self.full_size[0] / img_H
-                if self.is_fixK:
-                    if data_side == 'l':
-                        baseline = -0.54
-                    else:
-                        baseline = 0.54
-                    extric = torch.tensor([[1, 0, 0, baseline], [0, 1, 0, 0],
-                                           [0, 0, 1, 0], [0, 0, 0, 1]])
-                else:
-                    if data_side == 'l':
-                        factor = -1
-                    else:
-                        factor = 1
-                    extric = torch.tensor(
-                        [[1, 0, 0, factor * width_to_baseline[img_W]],
-                         [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
-
-                inputs['K'] = torch.from_numpy(intric).to(torch.float)
-                inputs['inv_K'] = torch.from_numpy(np.linalg.pinv(intric))\
-                    .to(torch.float)
-                inputs['T'] = extric
 
             if self.load_depthhints:
                 hints_l_path = base_path.format(

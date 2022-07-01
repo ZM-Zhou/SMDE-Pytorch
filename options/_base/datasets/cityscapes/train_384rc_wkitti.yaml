@@ -11,3 +11,5 @@ _dataset:
     load_disp: False
     load_semantic: False
     fuse_kitti: True
+    use_casser_test: True
+    load_test_gt: True

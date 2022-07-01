@@ -9,6 +9,7 @@ model:
     use_depthhints: True
     use_packnet: False
     use_hrdec: False
+    use_fsredec: False
     set_SCALE: null
 
 loss:

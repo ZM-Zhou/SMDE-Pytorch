@@ -1,6 +1,6 @@
 test_dataset:
   params:
-    read_jpg: True
+    jpg_test: True
 
 _test: options/_base/datasets/kitti/test_192.yaml
 _base: options/DepthHints/train/depth-hints_res50_192_kitti_stereo.yaml

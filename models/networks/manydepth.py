@@ -3,72 +3,43 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from models.backbones.manydepth_enc import ResnetEncoderMatching
 from models.backbones.resnet import ResNet_Backbone
-from models.backbones.packnet_enc import PackEncoder
 from models.base_net import Base_of_Network
-from models.decoders.cma_decoder import CMA
-from models.decoders.hrdepth_dec import HRDepthDecoder
-from models.decoders.packnet_dec import PackDecoder
-from models.decoders.pose import PoseDecoder, PoseNet
 from models.decoders.upsample import UpSample_Layers
+from models.decoders.pose import PoseDecoder
 from utils import platform_manager
 
 
 @platform_manager.MODELS.add_module
-class Monodepth2(Base_of_Network):
+class ManyDepth(Base_of_Network):
     def _initialize_model(
             self,
             encoder_layer=18,
             min_depth=0.1,
             max_depth=100,
             image_size=[192, 640],
-            data_mode=[1, -1],  # ["o"]
-            use_depthhints=False,
-            use_packnet=False,
-            use_hrdec=False,
-            use_fsredec=False,
-            set_SCALE=None,
     ):
         self.init_opts = locals()
 
         self.min_depth = min_depth
         self.max_depth = max_depth
         self.image_size = image_size
-        self.data_mode = data_mode
-        self.use_depthhints = use_depthhints
-        self.use_packnet = use_packnet
-        self.use_hrdec = use_hrdec
-        self.use_fsredec = use_fsredec
-        self.set_SCALE = set_SCALE
-
-        self.mono_train = (1 in data_mode or -1 in data_mode)
 
         self.net_module = {}
-        if self.use_packnet:
-            self.net_module['encoder'] = PackEncoder()
-            self.net_module['decoder'] = PackDecoder()
+        self.net_module['encoder'] = ResnetEncoderMatching(encoder_layer,
+                                                           True,
+                                                           image_size[0],
+                                                           image_size[1],
+                                                           adaptive_bins=True)
+        self.net_module['encoder'].to(self.device)
+        
+        self.net_module['decoder'] = UpSample_Layers(self.net_module['encoder'].num_ch_enc)
 
-            if self.mono_train:
-                self.net_module['pose_encoder'] = nn.Identity()
-                self.net_module['pose_decoder'] = PoseNet(1)
-        else:
-            self.net_module['encoder'] = ResNet_Backbone(encoder_layer)
-            if encoder_layer == 18:
-                enc_ch_num = [64, 64, 128, 256, 512]
-            else:
-                enc_ch_num = [64, 256, 512, 1024, 2048]
-            if self.use_hrdec:
-                self.net_module['decoder'] = HRDepthDecoder(enc_ch_num)
-            if self.use_fsredec:
-                self.net_module['decoder'] = CMA(enc_ch_num)
-            else:
-                self.net_module['decoder'] = UpSample_Layers(enc_ch_num)
-
-            if self.mono_train:
-                self.net_module['pose_encoder'] = ResNet_Backbone(encoder_layer,
-                                                                  in_ch=6)
-                self.net_module['pose_decoder'] = PoseDecoder(
-                    enc_ch_num, num_input_features=1, num_frames_to_predict_for=2)
+        # self.net_module['pose_encoder'] = ResNet_Backbone(18, in_ch=6)
+        # self.net_module['pose_deocder'] = PoseDecoder([64, 64, 128, 256, 512],
+        #                                               num_input_features=1,
+        #                                               num_frames_to_predict_for=2)
 
         self._networks = nn.ModuleList(list(self.net_module.values()))
 
@@ -83,78 +54,32 @@ class Monodepth2(Base_of_Network):
         if is_train:
             losses = {}
             losses['loss'] = 0
-            train_side = 's'
-
-            x = (inputs['color_{}_aug'.format(train_side)] - 0.45) / 0.225
-            features = self.net_module['encoder'](x)
-            disp_outputs = self.net_module['decoder'](features, x.shape)
-
-            K = self.inputs['K']
-            inv_K = self.inputs['inv_K']
-            if self.mono_train:
-                outputs.update(self._get_poses())
-            for scale in range(4):
-                if self.use_packnet:
-                    disp = disp_outputs[scale]
-                else:
-                    disp = torch.sigmoid(disp_outputs[scale])
-                outputs['disp_raw_{}_{}'.format(scale, train_side)] = disp
-                disp = F.interpolate(disp,
-                                     self.image_size,
-                                     mode='bilinear',
-                                     align_corners=False)
-                outputs['disp_{}_{}'.format(scale, train_side)] = disp
-                _, depth = self._disp2depth(disp)
-                if self.use_depthhints:
-                    outputs['depth_{}_{}'.format(scale, train_side)] = depth * 5.4
-                for id_frame in self.data_mode:
-                    source_img = self.inputs[('color_{}'.format(id_frame))]
-                    if id_frame != 'o':
-                        T = outputs['T_{}'.format(id_frame)]
-                    else:
-                        T = inputs['T'].clone()
-                        T[:, 0, 3] = T[:, 0, 3] / 5.4
-                    projected_img, _ = self.projector[0](depth, inv_K, T, K,
-                                                         source_img, False)
-                    outputs['proj_img_{}_{}_{}'.format(
-                        id_frame, scale, train_side)] = projected_img
-            if self.use_depthhints:
-                source_img = self.inputs['color_o']
-                depth = inputs['hints_{}'.format(train_side)]
-                T = inputs['T'].clone()
-                projected_img, _ = self.projector[0](depth, inv_K, T, K,
-                                                     source_img, False)
-                outputs['proj_img_hints_{}'.format(
-                        train_side)] = projected_img
-
-            self._compute_losses(outputs, train_side, losses)
+            pass
             return outputs, losses
 
         else:
-            if self.use_packnet:
-                x = inputs['color_s']
-            else:
-                x = (inputs['color_s'] - 0.45) / 0.225
-            features = self.net_module['encoder'](x)
+            # will do in the encoder
+            # x = (inputs['color_s'] - 0.45) / 0.225
+            x = inputs['color_s']
+
+            # test in zero_volume (monocular) mode
+            bs = x.shape[0]
+            K = inputs['K'].clone()
+            K[:, 0:2, ...] /= 4
+            invK = torch.inverse(K)
+            pose = torch.zeros(bs, 4, 4).to(x)
+            features, _, _ = self.net_module['encoder'](x, x.unsqueeze(1),
+                                                      pose, K, invK)
             disp_outputs = self.net_module['decoder'](features, x.shape)
-            if self.use_packnet:
-                disp = disp_outputs[0]
-                pred_depth = 1 / disp
-            else:
-                disp = torch.sigmoid(disp_outputs[0])
-                _, pred_depth = self._disp2depth(disp)
-            if not self.mono_train:
-                pred_depth = pred_depth * 5.4
-            if self.set_SCALE is not None:
-                pred_depth = pred_depth * self.set_SCALE
+            disp = torch.sigmoid(disp_outputs[0])
+            pred_disp, pred_depth = self._disp2depth(disp)
+            
+            # # To repeat the official results, the disp is resized by cv2
+            # import cv2
+            # pred_disp = cv2.resize(pred_disp[0, ...].permute(1, 2, 0).cpu().numpy(), (2048, 768))
+            # pred_depth_np = torch.from_numpy(1 / pred_disp).unsqueeze(0).unsqueeze(0).to(pred_depth)
+            
             outputs[('depth', 's')] = pred_depth
-            # for scale in range(4):
-            #     disp = torch.sigmoid(disp_outputs[scale])
-            #     disp = F.interpolate(disp,
-            #                          self.image_size,
-            #                          mode='bilinear',
-            #                          align_corners=False)
-            #     outputs['disp_{}_{}'.format(scale, 's')] = disp
 
             return outputs
 

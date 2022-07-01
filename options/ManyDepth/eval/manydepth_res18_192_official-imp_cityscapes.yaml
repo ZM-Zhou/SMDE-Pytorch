@@ -1,0 +1,10 @@
+test_dataset:
+  params:
+    load_KTmatrix: True
+
+model:
+  params:
+    image_size: [192, 512]
+
+_test: options/_base/datasets/cityscapes/test_192_depth.yaml
+_base: options/_base/networks/manydepth.yaml

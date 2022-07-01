@@ -1,15 +1,15 @@
 _dataset:
   type: CityscapesColorDataset
   params:
-    split_file: null
+    split_file: data_splits/cityscapes/test_list.txt
     crop_coords: [0, 0, 768, 2048]
     full_size: null
     patch_size: null
-    normalize_params: [0.411, 0.432, 0.45]
+    normalize_params: [0, 0, 0]
     flip_mode: null
     load_KTmatrix: False
     load_disp: False
-    load_semantic: True
+    load_semantic: False
     fuse_kitti: False
-    use_casser_crop: True
+    use_casser_test: True
     load_test_gt: True

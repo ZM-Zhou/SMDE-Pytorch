@@ -2,8 +2,8 @@ train_dataset:
   - type: CityscapesColorDataset
     params:
       split_file: data_splits/cityscapes/train_extra_stereo_list.txt
-      crop_coords: [160, 0, 736, 1984]
-      full_size: [384, 1280]
+      crop_coords: [160, 64, 736, 1984]
+      full_size: [375, 1242]
       patch_size: [192, 640]
       normalize_params: [0.411, 0.432, 0.45]
       flip_mode: img
@@ -14,7 +14,7 @@ train_dataset:
   - type: KITTIColorDepthDataset
     params:
       split_file: data_splits/kitti/train_list.txt
-      full_size: [384, 1280]
+      full_size: null
       patch_size: [192, 640]
       random_resize: True
       normalize_params: [0.411, 0.432, 0.45]

@@ -8,6 +8,10 @@
 |FAL-NetB|N=49+375x1242|Stereo|mspp|Official|0.095|0.598|4.188|0.179|0.890|[Baidu](https://pan.baidu.com/s/1kN7hLqd0_c2yzufsOLypEA)|
 |FAL-NetB|N=49+375x1242|Stereo||Trained|0.099|0.625|4.197|0.182|0.885|[Baidu](https://pan.baidu.com/s/1PhUJ_4s0nm41a49viZRczg)|
 |FAL-NetB|N=49+375x1242|Stereo|mspp|Trained|0.096|0.604|4.185|0.179|0.889|[Baidu](https://pan.baidu.com/s/1PhUJ_4s0nm41a49viZRczg)|
+|FAL-NetB|N=49+375x1242(CS+K)|Stereo|mspp|Reported|0.088|0.547|4.004|0.175|0.898|-|
+|FAL-NetB|N=49+384x1280(CS+K)|Stereo||Trained|0.095|0.608|4.104|0.180|0.891|[Baidu](https://pan.baidu.com/s/1enefgOO912A9bvJltIQXYg)|
+|FAL-NetB|N=49+384x1280(CS+K)|Stereo|mspp|Trained|0.092|0.579|4.065|0.175|0.897|[Baidu](https://pan.baidu.com/s/1enefgOO912A9bvJltIQXYg)|
+
 
 **Results on KITTI improved test set**
 |Method|Info.|Sup|PP|Train|Abs Rel.|Sq Rel.|RMSE|RMSElog|A1|Model|
@@ -19,6 +23,9 @@
 |FAL-NetB|N=49+375x1242|Stereo|mspp|Official|0.072|0.296|2.994|0.109|0.941|[Baidu](https://pan.baidu.com/s/1kN7hLqd0_c2yzufsOLypEA)|
 |FAL-NetB|N=49+375x1242|Stereo||Trained|0.076|0.317|3.002|0.114|0.936|[Baidu](https://pan.baidu.com/s/1PhUJ_4s0nm41a49viZRczg)|
 |FAL-NetB|N=49+375x1242|Stereo|mspp|Trained|0.072|0.300|2.984|0.110|0.940|[Baidu](https://pan.baidu.com/s/1PhUJ_4s0nm41a49viZRczg)|
+|FAL-NetB|N=49+375x1242(CS+K)|Stereo|mspp|Reported|0.068|0.276|2.906|0.106|0.944|-|
+|FAL-NetB|N=49+384x1280(CS+K)|Stereo||Trained|0.074|0.295|2.859|0.109|0.941|[Baidu](https://pan.baidu.com/s/1enefgOO912A9bvJltIQXYg)|
+|FAL-NetB|N=49+384x1280(CS+K)|Stereo|mspp|Trained|0.068|0.274|2.812|0.103|0.946|[Baidu](https://pan.baidu.com/s/1enefgOO912A9bvJltIQXYg)|
 
 **Results on Make3D test set** (trained on KITTI)
 |Backbone|Resolution|Sup|PP|Train|Abs Rel.|Sq Rel.|RMSE|log10|Model|
@@ -27,6 +34,9 @@
 |FAL-NetB|256x512|Stereo|mspp|Official|0.283|2.724|6.697|0.148|[Baidu](https://pan.baidu.com/s/1kN7hLqd0_c2yzufsOLypEA)|
 |FAL-NetB|256x512|Stereo||Trained|0.298|2.915|6.759|0.152|[Baidu](https://pan.baidu.com/s/1PhUJ_4s0nm41a49viZRczg)|
 |FAL-NetB|256x512|Stereo|mspp|Trained|0.280|2.675|6.615|0.146|[Baidu](https://pan.baidu.com/s/1PhUJ_4s0nm41a49viZRczg)|
+|FAL-NetB|256x512|Stereo|mspp|Reported|0.254|2.140|6.139|-|
+|FAL-NetB|256x512|Stereo||Trained|0.285|2.778|6.565|0.149|[Baidu](https://pan.baidu.com/s/1enefgOO912A9bvJltIQXYg)|
+|FAL-NetB|256x512|Stereo|mspp|Trained|0.274|2.529|6.358|0.143|[Baidu](https://pan.baidu.com/s/1enefgOO912A9bvJltIQXYg)|
 
 * `Reported` means that the results are reported in the paper.
 * `Official` means that the results are predicted with the models got from their Official Implementations.

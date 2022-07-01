@@ -37,7 +37,9 @@ class CityscapesColorDataset(data.Dataset):
                  load_KTmatrix=False,
                  load_disp=False,
                  load_semantic=True,
-                 fuse_kitti=False):
+                 fuse_kitti=False,
+                 use_casser_test=True,
+                 load_test_gt=True):
         self.init_opts = locals()
 
         self.dataset_mode = dataset_mode
@@ -55,6 +57,9 @@ class CityscapesColorDataset(data.Dataset):
 
         self.fuse_kitti = fuse_kitti
 
+        self.use_casser_test = use_casser_test
+        self.load_test_gt = load_test_gt
+
         self.file_list = self._get_file_list(split_file)
         
         if self.load_semantic:
@@ -63,6 +68,9 @@ class CityscapesColorDataset(data.Dataset):
         if self.load_disp:
             assert self.flip_mode != "semantic",\
                 "Images can't br rotated and flipped up and down when reading matching information."
+        if self.load_test_gt:
+            assert not self.load_disp,\
+                "When the ground-truth depths are used, do not load the raw dispairties."
         
         # Initializate transforms
         self.to_tensor = tf.ToTensor()
@@ -76,14 +84,18 @@ class CityscapesColorDataset(data.Dataset):
             # just resize
             if self.full_size is not None and self.patch_size is None:
                 pass
-                
         else:
+            if self.load_test_gt:
+                self.gt_depths = os.path.join(self.dataset_dir, "gt_depths")
+            if self.use_casser_test:
+                self.crop_coords = [0, 0, 768, 2048]
+                self.full_size = [192, 512]
             if self.full_size is not None:
-                self.color_resize = tf.Resize(full_size,
+                self.color_resize = tf.Resize(self.full_size,
                                               interpolation=Image.ANTIALIAS)
             else:
                 self.color_resize = NoneTransform()
-    
+
     def __len__(self):
         return len(self.file_list)
     
@@ -137,6 +149,11 @@ class CityscapesColorDataset(data.Dataset):
         if self.dataset_mode == "train":
             color_r_path = base_path.format(*self.DATA_NAME_DICT['color_r'])
             inputs['color_o_raw'] = get_input_img(color_r_path)
+        if self.dataset_mode == 'test':
+            if self.load_test_gt:
+                gt_depth = np.load(os.path.join(self.gt_depths, str(f_idx).zfill(3) + '_depth.npy'))
+                inputs['depth'] = gt_depth
+
             
         # Process data
         # resize crop & color jit & flip(roataion) for train
@@ -259,6 +276,16 @@ class CityscapesColorDataset(data.Dataset):
                     inputs['depth'] = inputs['disp_k'] / (inputs[key] + mask)
                     inputs['depth'][disp == 0] = 0
                     inputs[key] = disp
+                elif "semantc" in key:
+                    raw_map = inputs[key]
+                    raw_map = self.fix_crop(raw_map, *self.crop_coords)
+                    s_map = torch.from_numpy(raw_map.copy()).unsqueeze(0)
+                    inputs[key] = s_map
+                elif 'depth' in key:
+                    raw_depth = inputs[key]
+                    raw_depth = raw_depth[self.crop_coords[0]: self.crop_coords[2], self.crop_coords[1]: self.crop_coords[3]]
+                    depth = self.to_tensor(raw_depth)
+                    inputs[key] = depth
         
         # delete raw data
         inputs.pop("color_s_raw")
