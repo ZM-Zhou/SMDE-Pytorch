@@ -235,8 +235,8 @@ class CityscapesColorDataset(data.Dataset):
                         raw_disp = raw_disp.transpose(Image.FLIP_LEFT_RIGHT)
                     disp = self.to_tensor(raw_disp) 
                     disp = self.crop(self.map_resize(disp), crop_params)
-                    inputs[key] = disp * img_size[1] / img_W\
-                                * scale_factor * 0.0039028 # disp will be changed when resize
+                    # disp will be changed when resize
+                    inputs[key] = disp * (img_size[1] / img_W) * scale_factor / 256
                     mask = (disp == 0).to(torch.float)
                     inputs['depth'] = inputs['disp_k'] / (inputs[key] + mask)
                     inputs['depth'][disp == 0] = 0
@@ -269,9 +269,8 @@ class CityscapesColorDataset(data.Dataset):
                 elif 'disparity' in key:
                     raw_disp = inputs[key]
                     raw_disp = self.fix_crop(raw_disp, *self.crop_coords)
-                    disp = self.to_tensor(raw_disp) 
-                    inputs[key] = disp * img_size[1] / img_W\
-                                * 0.0039028 # disp will be changed when resize
+                    # disp will be changed when resize
+                    inputs[key] = disp * (img_size[1] / img_W) / 256
                     mask = (disp == 0).to(torch.float)
                     inputs['depth'] = inputs['disp_k'] / (inputs[key] + mask)
                     inputs['depth'][disp == 0] = 0

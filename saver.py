@@ -68,8 +68,12 @@ class ModelSaver(object):
             print(miss)
         if unexpected is not None:
             print(unexpected)
-        start_epoch = load_dict['epoch'] + 1
-        start_step = load_dict['step']
+        if 'epoch' in load_dict:
+            start_epoch = load_dict['epoch'] + 1
+            start_step = load_dict['step']
+        else:
+            start_epoch = 1
+            start_step = 1
         return model, start_epoch, start_step
 
     def load_optim(self, pre_model_path, optimizers=None, schedulers=None):

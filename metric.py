@@ -1,5 +1,6 @@
 import csv
 from math import exp
+import numpy as np
 
 import torch
 import torch.nn.functional as F
@@ -32,10 +33,10 @@ def metric_depth(pred, gt, median_scale=False, kitti_mask=False,
 
     gt = gt[mask].clamp(min_depth, max_depth)
     pred = pred[mask]
+    gt_median = torch.median(gt)
+    pred_median = torch.median(pred)
+    scale = gt_median / pred_median
     if median_scale:
-        gt_median = torch.median(gt)
-        pred_median = torch.median(pred)
-        scale = gt_median / pred_median
         pred *= scale
     pred = pred.clamp(min_depth, max_depth)
 
@@ -55,7 +56,7 @@ def metric_depth(pred, gt, median_scale=False, kitti_mask=False,
 
     sq_rel = torch.mean((gt - pred)**2 / gt)
 
-    return [abs_rel, sq_rel, rmse, rmse_log, a1, a2, a3]
+    return [abs_rel, sq_rel, rmse, rmse_log, a1, a2, a3, scale]
 
 
 def metric_synth(pred, gt):
@@ -250,11 +251,13 @@ class Metric(object):
         if ('depth_kitti' in metric_name
                 or 'depth_kitti_mono' in metric_name
                 or 'depth_ddad' in metric_name
-                or 'depth_cityscapes_mono' in metric_name):
+                or 'depth_ddad_mono' in metric_name
+                or 'depth_cityscapes_mono' in metric_name
+                or 'depth_cityscapes' in metric_name):
             self.case_names += [
-                'abs_rel', 'sq_rel', 'rms', 'log_rms', 'a1', 'a2', 'a3'
+                'abs_rel', 'sq_rel', 'rms', 'log_rms', 'a1', 'a2', 'a3', 'scale'
             ]
-            self.case_num += 7
+            self.case_num += 8
         if 'synth' in metric_name:
             self.case_names += ['psnr', 'ssim']
             self.case_num += 2
@@ -290,6 +293,10 @@ class Metric(object):
 
     def get_metric_output(self, test_mode=False, save_csv=None):
         mean_metric = self._get_mean_metric()
+        for name in self.metric_name:
+            if 'mono' in name:
+                std_scale = np.std([m[-1] for m in self.all_metric])
+                print('    STD of scale: {:0.3f}'.format(std_scale))
         info_line = '    |'
         metric_line = '    |'
         for c_idx in range(self.case_num):
@@ -317,11 +324,25 @@ class Metric(object):
             pred = outputs[('depth', 's')]
             gt = inputs['depth']
             res += metric_depth(pred, gt, median_scale=True, kitti_mask=True)
+        if 'depth_cityscapes' in self.metric_name:
+            pred = outputs[('depth', 's')]
+            gt = inputs['depth']
+            res += metric_depth(pred, gt, cityscapes_mask=True)
         if 'depth_cityscapes_mono' in self.metric_name:
             pred = outputs[('depth', 's')]
             gt = inputs['depth']
             res += metric_depth(pred, gt, cityscapes_mask=True,
                                 median_scale=True)
+        if 'depth_ddad' in self.metric_name:
+            pred = outputs[('depth', 's')]
+            gt = inputs['depth']
+            res += metric_depth(pred, gt, min_depth=0, max_depth=200)
+        if 'depth_ddad_mono' in self.metric_name:
+            pred = outputs[('depth', 's')]
+            gt = inputs['depth']
+            res += metric_depth(pred, gt, median_scale=True, 
+                                min_depth=0, max_depth=200)
+        
         if 'synth' in self.metric_name:
             pred = outputs[('synth', 's')]
             gt = inputs['color_o']
@@ -338,11 +359,7 @@ class Metric(object):
             pred = outputs[('depth', 's')]
             gt = inputs['depth']
             res += metric_depth_nyu(pred, gt, True)
-        if 'depth_ddad' in self.metric_name:
-            pred = outputs[('depth', 's')]
-            gt = inputs['depth']
-            res += metric_depth(pred, gt, median_scale=True, 
-                                min_depth=0, max_depth=200)
+        
 
         self.now_metric = [a + b for (a, b) in zip(self.now_metric, res)]
         self.all_metric.append([e.item() for e in res])

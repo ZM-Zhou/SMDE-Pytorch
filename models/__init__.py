@@ -8,6 +8,7 @@ from .networks.epc_depth import EPCDepth_Net
 from .networks.fal_netB import FAL_NetB
 from .networks.manydepth import ManyDepth
 from .networks.monodepth2 import Monodepth2
+from .networks.r_msfm import R_MSFM
 
 __all__ = [
     'get_losses_with_opts', 'get_model_with_opts', 'DepthHints_PhotoLoss',

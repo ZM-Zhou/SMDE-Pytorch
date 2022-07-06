@@ -1,0 +1,28 @@
+train_dataset:
+  params:
+    is_fixK: v2
+    multi_out_scale: null
+
+
+model:
+  params:
+    image_size: [192, 640]
+
+visual:
+  type:
+    color_s: img
+    disp_0_s: disp
+    photo_auto_min-0/s: error_heat
+    proj_img_1_0_s: img
+    proj_img_-1_0_s: img
+    disp_5_s: disp
+    disp_3_s: disp
+    disp_1_s: disp
+  shape: [[color_s, photo_auto_min-0/s],
+          [proj_img_1_0_s, proj_img_-1_0_s],
+          [disp_0_s, disp_1_s],
+          [disp_3_s, disp_5_s]]
+
+_train: options/_base/datasets/kitti/train_192_mono.yaml
+_val: options/_base/datasets/kitti/test_192.yaml
+_base: options/_base/networks/r-msfm.yaml

@@ -73,6 +73,16 @@ parser.add_argument('--beta1',
                     type=float,
                     default=0.5,
                     help='# of Adam optimizer')
+parser.add_argument('--weight_decay',
+                    dest='weight_decay',
+                    type=float,
+                    default=0.5,
+                    help='# of AdamW optimizer')
+parser.add_argument('--clip_grad',
+                    dest='clip_grad',
+                    type=float,
+                    default=-1,
+                    help='# of the parameters')
 
 parser.add_argument('--batch_size',
                     dest='batch_size',
@@ -273,7 +283,8 @@ class Trainer(object):
             if opts.optim_name == 'AdamW':
                 optimizer = optim.AdamW(params,
                                         opts.learning_rate,
-                                        betas=(opts.beta1, 0.999))
+                                        betas=(opts.beta1, 0.999),
+                                        weight_decay=opts.weight_decay)
             scheduler = sched.MultiStepLR(optimizer, opts.decay_step,
                                           opts.decay_rate)
             self.optimizer.append(optimizer)
@@ -335,7 +346,10 @@ class Trainer(object):
                         losses['0-loss'].backward(retain_graph=True)
                 else:
                     losses['loss'].backward()
-
+                if opts.clip_grad != -1:
+                    for params in optimizer_item.param_groups:
+                        params = params['params']
+                        torch.nn.utils.clip_grad_norm_(params, max_norm=opts.clip_grad)
                 optimizer_item.step()
                 for _optimizer_item in self.optimizer:
                     _optimizer_item.zero_grad()

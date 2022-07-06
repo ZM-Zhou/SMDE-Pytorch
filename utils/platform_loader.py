@@ -53,9 +53,13 @@ def _update_dic(dic, base_dic):
                         if isinstance(list_item, dict):
                             # update a existing loss term
                             if list_item['name'] == target_item['name']:
-                                base_dic[key][list_idx] =\
-                                    _update_dic(target_item,
-                                                base_dic[key][list_idx])
+                                if ('type' in target_item
+                                        and target_item['type'] == None):
+                                    base_dic[key].pop(list_idx)
+                                else:
+                                    base_dic[key][list_idx] =\
+                                        _update_dic(target_item,
+                                                    base_dic[key][list_idx])
                                 is_exist = True
                         else:
                             # this flag is used to record the options

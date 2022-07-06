@@ -1,0 +1,6 @@
+test_dataset:
+  params:
+    jpg_test: True
+
+_test: options/_base/datasets/kitti/test_320.yaml
+_base: options/_base/networks/r-msfm.yaml

@@ -29,22 +29,14 @@ conda activate pytorch170cu11
 |[FSRE-Depth](options/EPCDepth) | 2021 ICCV| ✔| | [Link](https://openaccess.thecvf.com/content/ICCV2021/html/Jung_Fine-Grained_Semantics-Aware_Representation_Enhancement_for_Self-Supervised_Monocular_Depth_Estimation_ICCV_2021_paper.html)| [Link](https://github.com/hyBlue/FSRE-Depth)|
 |[HRDepth](options/HRDepth) | 2021 AAAI| ✔| ✔| [Link](https://ojs.aaai.org/index.php/AAAI/article/view/16329)| [Link](https://github.com/shawLyu/HR-Depth)|
 |[ManyDepth](options/ManyDepth) | 2021 CVPR| ✔| | [Link](https://arxiv.org/abs/2104.14540)| [Link](https://github.com/nianticlabs/manydepth)|
+|[R-MSFM](options/R-MSFM) | 2021 ICCV| ✔| ✔| [Link](https://openaccess.thecvf.com/content/ICCV2021/papers/Zhou_R-MSFM_Recurrent_Multi-Scale_Feature_Modulation_for_Monocular_Depth_Estimating_ICCV_2021_paper.pdf)| [Link](https://github.com/jsczzzk/R-MSFM)|
 
 
 * `Test` : You could predict depths with their pretrained models provided by their official implementations. We have tested their performances and more details are given on their pages (click their names in the table).
 * `Train`: We have trained the method with this repository and the trained model achieves competitive or better performances compared to the official version.
 ### TODO List
-- [x] Monodepth2 (ICCV 2019)
-- [x] DepthHints (ICCV 2019)
-- [x] FAL-Net (NeurIPS 2020)
-- [x] P2-Net (ECCV 2020)
-- [x] Edge-of-depth (CVPR 2020)
-- [x] PackNet (CVPR 2020)
-- [x] EPCDepth (ICCV 2021)
-- [x] HR-Depth (AAAI 2021)
 - [ ] SuperDepth (ICRA 2019)
-- [x] FSRE-Depth (ICCV 2021)
-- [x] ManyDepth (CVPR 2022)
+
 
 ## Evaluation Results
 We give the performances of the methods on **the KITTI raw test set** (an outdoor dataset) for helping you choose the model. More pretrained models are given on their pages (click their names in the above table).
@@ -52,6 +44,7 @@ We give the performances of the methods on **the KITTI raw test set** (an outdoo
 |------|-----|---|-------|--------|-------|----|-------|--|
 |ManyDepth(Mono)|Res18+192x640|Mono|[Offical](https://pan.baidu.com/s/168qFsk68t0117PXwcagtqQ)|0.118|0.891|4.763|0.192|0.871|
 |PackNet|PackV1+192x640|Mono|[Official](https://pan.baidu.com/s/1d_uL1q2_bsGEskFDcEfBGA)|0.110|0.836|4.655|0.187|0.881|
+|R-MSFM6|Res18+192x640|Mono|[Trained](https://pan.baidu.com/s/1alD5kmgM7P07-hWLDFxyEg)|0.110|0.797|4.646|0.188|0.880|
 |Monodepth2|Res18+320x1024|Mono|[Trained](https://pan.baidu.com/s/1T3IGfBB2c5Y2xskACRg3aQ)|0.109|0.797|4.533|0.184|0.888|
 |FSRE-Depth|Res18+192x640|Mono|[Official](https://pan.baidu.com/s/1u9VhbIPN67E12oqLSFzGiA)|0.105|0.711|4.546|0.182|0.886|
 |Monodepth2|Res18+320x1024|Stereo|[Trained](https://pan.baidu.com/s/1Kj9HOo15murscIsOchMEUA)|0.104|0.824|4.747|0.200|0.875|
@@ -298,6 +291,7 @@ coming soon
 [HRDepth](https://github.com/shawLyu/HR-Depth)  
 [FSRE-Depth](https://github.com/hyBlue/FSRE-Depth)  
 [ManyDepth](https://github.com/nianticlabs/manydepth)  
+[R-MSFM](https://github.com/jsczzzk/R-MSFM)
 [ApolloScape Dataset](http://apolloscape.auto/index.html)  
 [KITTI Dataset](http://www.cvlibs.net/datasets/kitti/index.php)  
 [NYUv2 Dataset](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html)  

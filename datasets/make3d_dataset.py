@@ -7,7 +7,6 @@ import torchvision.transforms as tf
 from torch.utils import data
 
 from datasets.utils.data_reader import get_input_depth_make3d, get_input_img
-from datasets.utils.my_transforms import NoneTransform
 from path_my import Path
 from utils import platform_manager
 
@@ -24,15 +23,18 @@ class Make3DDataset(data.Dataset):
                  dataset_mode,
                  split_file,
                  normalize_params=[0.411, 0.432, 0.45],
-                 is_godard_crop=True,
-                 full_size=None):
+                 use_godard_crop=True,
+                 full_size=None,
+                 resize_before_crop=False
+                 ):
         super().__init__()
         self.init_opts = locals()
         self.dataset_mode = dataset_mode
         self.dataset_dir = Path.get_path_of('make3d')
         self.split_file = split_file
-        self.is_godard_crop = is_godard_crop
+        self.use_godard_crop = use_godard_crop
         self.full_size = full_size
+        self.resize_before_crop = resize_before_crop
 
         self.file_list = self._get_file_list(split_file)
 
@@ -58,20 +60,32 @@ class Make3DDataset(data.Dataset):
         for key in list(inputs):
             if 'color' in key:
                 raw_img = inputs[key]
-                if self.is_godard_crop:
-                    raw_img = raw_img.crop((0, 710, 1704, 1562))
-                img = self.to_tensor(raw_img)
-                if self.full_size is not None:
-                    # for outputting the same image with cv2
-                    img = img.unsqueeze(0)
-                    img = F.interpolate(img, self.full_size, mode='nearest')
-                    img = img.squeeze(0)
-                inputs[key.replace('_raw', '')] =\
-                    self.normalize(img)
+                if self.resize_before_crop:
+                    self.color_resize = tf.Resize(self.full_size,
+                                                  interpolation=Image.ANTIALIAS)
+
+                    img = self.to_tensor(self.color_resize(raw_img))
+                    if self.use_godard_crop:
+                        top = int((self.full_size[0] - self.full_size[1] / 2) / 2) + 1
+                        bottom = int((self.full_size[0] + self.full_size[1] / 2) / 2) + 1
+                        img = img[:, top:bottom,:]
+                    inputs[key.replace('_raw', '')] =\
+                        self.normalize(img)
+                else:
+                    if self.use_godard_crop:
+                        raw_img = raw_img.crop((0, 710, 1704, 1562))
+                    img = self.to_tensor(raw_img)
+                    if self.full_size is not None:
+                        # for outputting the same image with cv2
+                        img = img.unsqueeze(0)
+                        img = F.interpolate(img, self.full_size, mode='nearest')
+                        img = img.squeeze(0)
+                    inputs[key.replace('_raw', '')] =\
+                        self.normalize(img)
 
             elif 'depth' in key:
                 raw_depth = inputs[key]
-                if self.is_godard_crop:
+                if self.use_godard_crop:
                     raw_depth = raw_depth[17:38, :]
                 depth = torch.from_numpy(raw_depth.copy()).unsqueeze(0)
                 inputs[key] = depth
