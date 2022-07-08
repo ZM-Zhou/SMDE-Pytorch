@@ -1,0 +1,55 @@
+train_dataset:
+  params:
+    is_fixK: v2
+    multi_out_scale: null
+
+
+model:
+  params:
+    decoder_mode: '3'
+    image_size: [192, 640]
+
+loss:
+  types:
+    - rate: 0.81
+      name: photo_auto_min-0
+    - rate: 0.9
+      name: photo_auto_min-1
+    - rate: 1
+      name: photo_auto_min-2
+    - type: null
+      name: photo_auto_min-3
+    - type: null
+      name: photo_auto_min-4
+    - type: null
+      name: photo_auto_min-5
+    - rate: 0.00081
+      name: smooth-0
+    - rate: 0.0009
+      name: smooth-1
+    - rate: 0.001
+      name: smooth-2
+    - type: null
+      name: smooth-3
+    - type: null
+      name: smooth-4
+    - type: null
+      name: smooth-5
+
+visual:
+  type:
+    color_s: img
+    disp_0_s: disp
+    photo_auto_min-0/s: error_heat
+    proj_img_1_0_s: img
+    proj_img_-1_0_s: img
+    disp_2_s: disp
+    disp_1_s: disp
+  shape: [[color_s, photo_auto_min-0/s],
+          [proj_img_1_0_s, proj_img_-1_0_s],
+          [disp_0_s, disp_1_s],
+          [disp_2_s, disp_2_s]]
+
+_train: options/_base/datasets/kitti/train_192_mono.yaml
+_val: options/_base/datasets/kitti/test_192.yaml
+_base: options/_base/networks/r-msfm.yaml

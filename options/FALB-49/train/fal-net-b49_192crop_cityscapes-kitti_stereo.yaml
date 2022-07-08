@@ -30,6 +30,10 @@ train_dataset:
       jpg_test: False
       improved_test: False
 
+val_dataset:
+  params:
+    full_size: null
+
 visual:
   type:
     color_s: img

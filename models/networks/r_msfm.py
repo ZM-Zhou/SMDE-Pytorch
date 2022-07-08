@@ -65,10 +65,8 @@ class R_MSFM(Base_of_Network):
 
             x = (inputs['color_{}_aug'.format(train_side)] - 0.45) / 0.225
             features = self.net_module['encoder'](x)
-            features = features[:3]
             disp_outputs = self.net_module['decoder'](features,
-                                                      x.shape,
-                                                      iters=6 if '6' in self.decoder_mode else 3)
+                                                      x.shape)
 
             K = self.inputs['K']
             inv_K = self.inputs['inv_K']
@@ -96,10 +94,8 @@ class R_MSFM(Base_of_Network):
         else:
             x = (inputs['color_s'] - 0.45) / 0.225
             features = self.net_module['encoder'](x)
-            features = features[:3]
             disp_outputs = self.net_module['decoder'](features,
-                                                      x.shape,
-                                                      iters=6 if '6' in self.decoder_mode else 3)
+                                                      x.shape)
             
             disp = disp_outputs[0]
             _, pred_depth = self._disp2depth(disp)

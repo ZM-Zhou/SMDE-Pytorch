@@ -1,0 +1,2 @@
+_test: options/_base/datasets/kitti/test_192.yaml
+_base: options/R-MSFM/train/r-msfm3_res18_192_kitti_mono.yaml

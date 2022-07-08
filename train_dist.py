@@ -76,7 +76,7 @@ parser.add_argument('--beta1',
 parser.add_argument('--weight_decay',
                     dest='weight_decay',
                     type=float,
-                    default=0.5,
+                    default=1e-2,
                     help='# of AdamW optimizer')
 parser.add_argument('--clip_grad',
                     dest='clip_grad',
