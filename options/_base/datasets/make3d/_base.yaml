@@ -3,5 +3,6 @@ _dataset:
   params:
     split_file: null
     normalize_params: [0.411, 0.432, 0.45]
-    is_godard_crop: True
+    use_godard_crop: True
     full_size: null
+    resize_before_crop: False

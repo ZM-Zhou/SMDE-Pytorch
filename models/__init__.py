@@ -13,5 +13,5 @@ from .networks.r_msfm import R_MSFM
 __all__ = [
     'get_losses_with_opts', 'get_model_with_opts', 'DepthHints_PhotoLoss',
     'EPCDepth_PhotoLoss','MD2_PhotoLoss', 'PhotoLoss', 'SmoothLoss',
-    'EPCDepth_Net', 'FAL_NetB', 'ManyDepth', 'Monodepth2'
+    'EPCDepth_Net', 'FAL_NetB', 'ManyDepth', 'Monodepth2', 'R_MSFM'
 ]

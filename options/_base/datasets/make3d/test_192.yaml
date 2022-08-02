@@ -3,5 +3,6 @@ _dataset:
   params:
     split_file: data_splits/make3d/test_list.txt
     normalize_params: [0, 0, 0]
-    is_godard_crop: True
+    use_godard_crop: True
     full_size: [192, 640]
+    resize_before_crop: False

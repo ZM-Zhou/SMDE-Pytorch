@@ -175,7 +175,7 @@ def metric_depth_m3d(pred, gt):
 
     sq_rel = torch.mean((gt - pred)**2 / gt)
 
-    return [abs_rel, sq_rel, rmse, rmse_log]
+    return [abs_rel, sq_rel, rmse, rmse_log, scale]
 
 def metric_depth_nyu(pred, gt, median_scale=False):
     _, _, h, w = gt.shape
@@ -264,11 +264,12 @@ class Metric(object):
         if 'photo_rmse' in metric_name:
             self.case_names += ['photo_rmse']
             self.case_num += 1
-        if 'depth_m3d' in metric_name:
+        if ( 'depth_m3d' in metric_name
+                or 'depth_m3d_mono' in metric_name):
             self.case_names += [
-                'abs_rel', 'sq_rel', 'rms', 'log_10',
+                'abs_rel', 'sq_rel', 'rms', 'log_10', 'scale'
             ]
-            self.case_num += 4
+            self.case_num += 5
         if 'depth_nyu_mono' in metric_name:
             self.case_names += [
                 'abs_rel', 'sq_rel', 'rms', 'log_rms', 'log_10', 'a1', 'a2', 'a3'
@@ -351,7 +352,8 @@ class Metric(object):
             pred = outputs[('synth', 's')]
             gt = inputs['color_o']
             res += metric_photo_rmse(pred, gt)
-        if 'depth_m3d' in self.metric_name:
+        if ( 'depth_m3d' in self.metric_name
+                or 'depth_m3d_mono' in self.metric_name):
             pred = outputs[('depth', 's')]
             gt = inputs['depth']
             res += metric_depth_m3d(pred, gt)
