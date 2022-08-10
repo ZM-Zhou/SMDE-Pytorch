@@ -14,7 +14,6 @@ class CMA(nn.Module):
         self.scales = [0, 1, 2, 3]
         self.cma_layers = [3, 2, 1]
         self.num_ch_dec = num_ch_enc
-        self.sgt = 0.1
         in_channels_list = [32, 64, 128, 256, 16]
 
         num_output_channels = 1
@@ -79,15 +78,14 @@ class CMA(nn.Module):
                     x_d = x_d_att
                     x_s = x_s_att
 
-            if self.sgt:
-                outputs[('d_feature', i)] = x_d
-                outputs[('s_feature', i)] = x_s
+            outputs['d_feature_{}'.format(i)] = x_d
+            outputs['s_feature_{}'.format(i)] = x_s
             if i in self.scales:
                 outs = self.depth_decoder._convs[10 + i](x_d)
                 outputs[i] =outs
                 if i == 0:
                     outs = self.seg_decoder._convs[10 + i](x_s)
-                    outputs[("seg_logits", i)] = outs[:, :19, :, :]
+                    outputs[('seg_logits', i)] = outs[:, :19, :, :]
 
         return outputs
 

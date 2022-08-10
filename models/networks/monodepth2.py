@@ -126,7 +126,14 @@ class Monodepth2(Base_of_Network):
                                                      source_img, False)
                 outputs['proj_img_hints_{}'.format(
                         train_side)] = projected_img
-
+            if self.use_fsredec:
+                outputs['pred_seg_{}'.format(train_side)] \
+                    = disp_outputs[('seg_logits', 0)]
+                outputs['seg_out_{}'.format(train_side)] \
+                    = torch.argmax(disp_outputs[('seg_logits', 0)], dim=1, keepdim=True)
+                for i in range(1, 4):
+                    outputs['feature_{}_{}'.format(i, train_side)] \
+                        = disp_outputs['d_feature_{}'.format(i)]
             self._compute_losses(outputs, train_side, losses)
             return outputs, losses
 

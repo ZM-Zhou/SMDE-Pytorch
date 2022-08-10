@@ -26,7 +26,7 @@ class ResNet_Backbone(nn.Module):
             self.layers3 = encoder.layer3
             self.layers4 = encoder.layer4
 
-    def forward(self, x):
+    def forward(self, x, *args, **kargs):
         feats = []
         x = self.layers0(x)
         feats.append(x)

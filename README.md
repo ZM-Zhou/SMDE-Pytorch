@@ -26,7 +26,7 @@ conda activate pytorch170cu11
 |[EdgeOfDepth](options/EdgeOfDepth)| 2020 CVPR| ✔| | [Link](https://openaccess.thecvf.com/content_CVPR_2020/html/Zhu_The_Edge_of_Depth_Explicit_Constraints_Between_Segmentation_and_Depth_CVPR_2020_paper.html)| [Link](https://github.com/TWJianNuo/EdgeDepth-Release)|
 |[PackNet](options/PackNet)| 2020 CVPR| ✔| | [Link](https://openaccess.thecvf.com/content_CVPR_2020/html/Guizilini_3D_Packing_for_Self-Supervised_Monocular_Depth_Estimation_CVPR_2020_paper.html)| [Link](https://github.com/TRI-ML/packnet-sfm)|
 |[EPCDepth](options/EPCDepth) | 2021 ICCV| ✔| ✔| [Link](https://arxiv.org/abs/2109.12484)| [Link](https://github.com/prstrive/EPCDepth)|
-|[FSRE-Depth](options/EPCDepth) | 2021 ICCV| ✔| | [Link](https://openaccess.thecvf.com/content/ICCV2021/html/Jung_Fine-Grained_Semantics-Aware_Representation_Enhancement_for_Self-Supervised_Monocular_Depth_Estimation_ICCV_2021_paper.html)| [Link](https://github.com/hyBlue/FSRE-Depth)|
+|[FSRE-Depth](options/EPCDepth) | 2021 ICCV| ✔| ✔| [Link](https://openaccess.thecvf.com/content/ICCV2021/html/Jung_Fine-Grained_Semantics-Aware_Representation_Enhancement_for_Self-Supervised_Monocular_Depth_Estimation_ICCV_2021_paper.html)| [Link](https://github.com/hyBlue/FSRE-Depth)|
 |[HRDepth](options/HRDepth) | 2021 AAAI| ✔| ✔| [Link](https://ojs.aaai.org/index.php/AAAI/article/view/16329)| [Link](https://github.com/shawLyu/HR-Depth)|
 |[ManyDepth](options/ManyDepth) | 2021 CVPR| ✔| | [Link](https://arxiv.org/abs/2104.14540)| [Link](https://github.com/nianticlabs/manydepth)|
 |[R-MSFM](options/R-MSFM) | 2021 ICCV| ✔| ✔| [Link](https://openaccess.thecvf.com/content/ICCV2021/papers/Zhou_R-MSFM_Recurrent_Multi-Scale_Feature_Modulation_for_Monocular_Depth_Estimating_ICCV_2021_paper.pdf)| [Link](https://github.com/jsczzzk/R-MSFM)|
@@ -46,7 +46,7 @@ We give the performances of the methods on **the KITTI raw test set** (an outdoo
 |PackNet|PackV1+192x640|Mono|[Official](https://pan.baidu.com/s/1d_uL1q2_bsGEskFDcEfBGA)|0.110|0.836|4.655|0.187|0.881|
 |R-MSFM6|Res18+192x640|Mono|[Trained](https://pan.baidu.com/s/1alD5kmgM7P07-hWLDFxyEg)|0.110|0.797|4.646|0.188|0.880|
 |Monodepth2|Res18+320x1024|Mono|[Trained](https://pan.baidu.com/s/1T3IGfBB2c5Y2xskACRg3aQ)|0.109|0.797|4.533|0.184|0.888|
-|FSRE-Depth|Res18+192x640|Mono|[Official](https://pan.baidu.com/s/1u9VhbIPN67E12oqLSFzGiA)|0.105|0.711|4.546|0.182|0.886|
+|FSRE-Depth|Res18+192x640|Mono|[Trained](https://pan.baidu.com/s/1jFDl9ofeFqxBQGyuGsn1WQ)|0.107|0.751|4.525|0.182|0.886|
 |Monodepth2|Res18+320x1024|Stereo|[Trained](https://pan.baidu.com/s/1Kj9HOo15murscIsOchMEUA)|0.104|0.824|4.747|0.200|0.875|
 |HRDepth|Res18+384x1280|Mono|[Trained](https://pan.baidu.com/s/1QJhkNhXTRUQimwomRoP96Q)|0.102|0.719|4.396|0.178|0.897|
 |FAL-NetB|N=49+375x1242|Stereo|[Trained](https://pan.baidu.com/s/1PhUJ_4s0nm41a49viZRczg)|0.099|0.625|4.197|0.182|0.885|

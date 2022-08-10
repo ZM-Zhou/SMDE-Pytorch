@@ -1,5 +1,6 @@
 import os
 import random
+from collections import namedtuple
 
 import numpy as np
 import torch
@@ -24,6 +25,80 @@ width_to_baseline[1280] = 0.54
 
 K_of_KITTI = [[721.54, 0, 609.56, 0], [0, 721.54, 172.85, 0], [0, 0, 1, 0]]
 
+Label = namedtuple('Label', [
+
+    'name',  # The identifier of this label, e.g. 'car', 'person', ... .
+    # We use them to uniquely name a class
+
+    'id',  # An integer ID that is associated with this label.
+    # The IDs are used to represent the label in ground truth images
+    # An ID of -1 means that this label does not have an ID and thus
+    # is ignored when creating ground truth images (e.g. license plate).
+    # Do not modify these IDs, since exactly these IDs are expected by the
+    # evaluation server.
+
+    'trainId',  # Feel free to modify these IDs as suitable for your method. Then create
+    # ground truth images with train IDs, using the tools provided in the
+    # 'preparation' folder. However, make sure to validate or submit results
+    # to our evaluation server using the regular IDs above!
+    # For trainIds, multiple labels might have the same ID. Then, these labels
+    # are mapped to the same class in the ground truth images. For the inverse
+    # mapping, we use the label that is defined first in the list below.
+    # For example, mapping all void-type classes to the same ID in training,
+    # might make sense for some approaches.
+    # Max value is 255!
+
+    'category',  # The name of the category that this label belongs to
+
+    'categoryId',  # The ID of this category. Used to create ground truth images
+    # on category level.
+
+    'hasInstances',  # Whether this label distinguishes between single instances or not
+
+    'ignoreInEval',  # Whether pixels having this class as ground truth label are ignored
+    # during evaluations or not
+
+    'color',  # The color of this label
+])
+labels = [
+    #       name                     id    trainId   category            catId     hasInstances   ignoreInEval   color
+    Label('unlabeled', 0, 255, 'void', 0, False, True, (0, 0, 0)),
+    Label('ego vehicle', 1, 255, 'void', 0, False, True, (0, 0, 0)),
+    Label('rectification border', 2, 255, 'void', 0, False, True, (0, 0, 0)),
+    Label('out of roi', 3, 255, 'void', 0, False, True, (0, 0, 0)),
+    Label('static', 4, 255, 'void', 0, False, True, (0, 0, 0)),
+    Label('dynamic', 5, 255, 'void', 0, False, True, (111, 74, 0)),
+    Label('ground', 6, 255, 'void', 0, False, True, (81, 0, 81)),
+    Label('road', 7, 0, 'flat', 1, False, False, (128, 64, 128)),
+    Label('sidewalk', 8, 1, 'flat', 1, False, False, (244, 35, 232)),
+    Label('parking', 9, 255, 'flat', 1, False, True, (250, 170, 160)),
+    Label('rail track', 10, 255, 'flat', 1, False, True, (230, 150, 140)),
+    Label('building', 11, 2, 'construction', 2, False, False, (70, 70, 70)),
+    Label('wall', 12, 3, 'construction', 2, False, False, (102, 102, 156)),
+    Label('fence', 13, 4, 'construction', 2, False, False, (190, 153, 153)),
+    Label('guard rail', 14, 255, 'construction', 2, False, True, (180, 165, 180)),
+    Label('bridge', 15, 255, 'construction', 2, False, True, (150, 100, 100)),
+    Label('tunnel', 16, 255, 'construction', 2, False, True, (150, 120, 90)),
+    Label('pole', 17, 5, 'object', 3, False, False, (153, 153, 153)),
+    Label('polegroup', 18, 255, 'object', 3, False, True, (153, 153, 153)),
+    Label('traffic light', 19, 6, 'object', 3, False, False, (250, 170, 30)),
+    Label('traffic sign', 20, 7, 'object', 3, False, False, (220, 220, 0)),
+    Label('vegetation', 21, 8, 'nature', 4, False, False, (107, 142, 35)),
+    Label('terrain', 22, 9, 'nature', 4, False, False, (152, 251, 152)),
+    Label('sky', 23, 10, 'sky', 5, False, False, (70, 130, 180)),
+    Label('person', 24, 11, 'human', 6, True, False, (220, 20, 60)),
+    Label('rider', 25, 12, 'human', 6, True, False, (255, 0, 0)),
+    Label('car', 26, 13, 'vehicle', 7, True, False, (0, 0, 142)),
+    Label('truck', 27, 14, 'vehicle', 7, True, False, (0, 0, 70)),
+    Label('bus', 28, 15, 'vehicle', 7, True, False, (0, 60, 100)),
+    Label('caravan', 29, 255, 'vehicle', 7, True, True, (0, 0, 90)),
+    Label('trailer', 30, 255, 'vehicle', 7, True, True, (0, 0, 110)),
+    Label('train', 31, 16, 'vehicle', 7, True, False, (0, 80, 100)),
+    Label('motorcycle', 32, 17, 'vehicle', 7, True, False, (0, 0, 230)),
+    Label('bicycle', 33, 18, 'vehicle', 7, True, False, (119, 11, 32)),
+    Label('license plate', -1, -1, 'vehicle', 7, False, True, (0, 0, 142)),
+]
+
 
 @platform_manager.DATASETS.add_module
 class KITTIColorDepthDataset(data.Dataset):
@@ -35,6 +110,8 @@ class KITTIColorDepthDataset(data.Dataset):
         'depth': ('velodyne_points', 'bin'),
         'hints_l': ('image_02', 'npy'),
         'hints_r': ('image_03', 'npy'),
+        'seg_l': ('image_02', 'png'),
+        'seg_r': ('image_03', 'png'),
     }
 
     def __init__(
@@ -52,6 +129,7 @@ class KITTIColorDepthDataset(data.Dataset):
             load_KTmatrix=False,
             load_depth=True,
             load_depthhints=False,
+            load_semantic=False,
             is_fixK=False,
             stereo_test=False,
             jpg_test=False,
@@ -72,12 +150,16 @@ class KITTIColorDepthDataset(data.Dataset):
         self.load_KTmatrix = load_KTmatrix
         self.load_depth = load_depth
         self.load_depthhints = load_depthhints
+        self.load_semantic = load_semantic
         self.is_fixK = is_fixK
         self.improved_test = improved_test
         self.stereo_test = stereo_test
         self.jpg_test = jpg_test
         
         self.file_list = self._get_file_list(split_file)
+
+        if self.load_semantic:
+            assert os.path.exists(os.path.join(self.dataset_dir, 'segmentation'))
 
         # Initialize transforms
         self.to_tensor = tf.ToTensor()
@@ -205,6 +287,32 @@ class KITTIColorDepthDataset(data.Dataset):
                 .to(torch.float)
             inputs['T'] = extric
 
+        if self.load_semantic:
+            base_path = base_path_list[0]
+            seg_l_path = base_path.format(
+                *self.DATA_NAME_DICT['seg_{}'.format(data_side)])
+            seg_l_path = seg_l_path.replace(
+                self.dataset_dir,
+                self.dataset_dir + '/segmentation').replace('/data', '')
+            seg_l = get_input_img(seg_l_path, False)
+            seg_copy_l = np.array(seg_l.copy())
+            for k in np.unique(seg_l):
+                seg_copy_l[seg_copy_l == k] = labels[k].trainId
+            inputs['seg_s'] = torch.from_numpy(seg_copy_l).unsqueeze(0)
+
+            if 'o' in self.output_frame:
+                oside = 'r' if data_side == 'l' else 'l'
+                seg_r_path = base_path.format(
+                    *self.DATA_NAME_DICT['seg_{}'.format(oside)])
+                seg_r_path = seg_r_path.replace(
+                    self.dataset_dir,
+                    self.dataset_dir + '/segmentation').replace('/data', '')
+                seg_r = get_input_img(seg_r_path, False)
+                seg_copy_r = np.array(seg_r.copy())
+                for k in np.unique(seg_r):
+                    seg_copy_r[seg_copy_r == k] = labels[k].trainId
+                inputs['seg_o'] = torch.from_numpy(seg_copy_r).unsqueeze(0)
+
         if self.dataset_mode == 'train':
             for idx_frame, base_path in enumerate(base_path_list[1:]):
                 if self.output_frame[idx_frame] != 'o':
@@ -220,7 +328,7 @@ class KITTIColorDepthDataset(data.Dataset):
 
             if self.load_depthhints:
                 hints_l_path = base_path.format(
-                    *self.DATA_NAME_DICT['hints_l'])
+                    *self.DATA_NAME_DICT['hints_{}'.format(data_side)])
                 hints_l_path = hints_l_path.replace(
                     self.dataset_dir,
                     self.dataset_dir + '/depth_hints').replace('/data', '')
@@ -229,16 +337,17 @@ class KITTIColorDepthDataset(data.Dataset):
                 inputs['hints_s'] = 5.4 * hints_depth_l
                 # inputs['hints_s'] = 0.058 / (hints_depth_l +
                 #                              1e-8) * (hints_depth_l > 0)
-
-                hints_r_path = base_path.format(
-                    *self.DATA_NAME_DICT['hints_r'])
-                hints_r_path = hints_r_path.replace(
-                    self.dataset_dir,
-                    self.dataset_dir + '/depth_hints').replace('/data', '')
-                hints_depth_r = torch.from_numpy(np.load(hints_r_path))
-                inputs['hints_o'] = 5.4 * hints_depth_r
-                # inputs['hints_o'] = 0.058 / (hints_depth_r +
-                #                              1e-8) * (hints_depth_r > 0)
+                if 'o' in self.output_frame:
+                    oside = 'r' if data_side == 'l' else 'l'
+                    hints_r_path = base_path.format(
+                        *self.DATA_NAME_DICT['hints_{}'.format(oside)])
+                    hints_r_path = hints_r_path.replace(
+                        self.dataset_dir,
+                        self.dataset_dir + '/depth_hints').replace('/data', '')
+                    hints_depth_r = torch.from_numpy(np.load(hints_r_path))
+                    inputs['hints_o'] = 5.4 * hints_depth_r
+                    # inputs['hints_o'] = 0.058 / (hints_depth_r +
+                    #                              1e-8) * (hints_depth_r > 0)
             
             if (self.dataset_mode == 'train' and self.flip_mode is not None):
                 if self.flip_mode == 'both':  # random flip mode
@@ -251,6 +360,9 @@ class KITTIColorDepthDataset(data.Dataset):
                         if self.load_depthhints:
                             inputs['hints_s'], inputs['hints_o'] = \
                                 inputs['hints_o'], inputs['hints_s']
+                        if self.load_semantic:
+                            inputs['seg_s'], inputs['seg_o'] = \
+                                inputs['seg_o'], inputs['seg_s']    
                         inputs['direct'] = -inputs['direct']
                         if self.load_KTmatrix:
                             inputs['T'][0, 3] = -inputs['T'][0, 3]
@@ -261,6 +373,9 @@ class KITTIColorDepthDataset(data.Dataset):
                         if self.load_depthhints:
                             inputs['hints_s'], inputs['hints_o'] = \
                                 inputs['hints_o'], inputs['hints_s']
+                        if self.load_semantic:
+                            inputs['seg_s'], inputs['seg_o'] = \
+                                inputs['seg_o'], inputs['seg_s']    
                     elif switch_img and not switch_k:
                         is_flip = True
                         inputs['direct'] = -inputs['direct']
@@ -278,6 +393,9 @@ class KITTIColorDepthDataset(data.Dataset):
                             if self.load_depthhints:
                                 inputs['hints_s'], inputs['hints_o'] = \
                                     inputs['hints_o'], inputs['hints_s']
+                            if self.load_semantic:
+                                inputs['seg_s'], inputs['seg_o'] = \
+                                    inputs['seg_o'], inputs['seg_s']    
                         else:
                             inputs['direct'] = -inputs['direct']
                             if self.load_KTmatrix:
@@ -319,13 +437,20 @@ class KITTIColorDepthDataset(data.Dataset):
                                                scale_factor)
             # color jit
             if self.color_aug and random.uniform(0, 1) < 0.5:
-                gamma_param = random.uniform(0.8, 1.2)
-                bright_param = random.uniform(0.5, 2)
-                cbright_param = [random.uniform(0.8, 1.2) for _ in range(3)]
+                if self.color_aug == 'v2':
+                    do_color_aug = tf.ColorJitter.get_params(
+                        (0.8, 1.2), (0.8, 1.2), (0.8, 1.2), (-0.1, 0.1))
+                else:
+                    gamma_param = random.uniform(0.8, 1.2)
+                    bright_param = random.uniform(0.5, 2)
+                    cbright_param = [random.uniform(0.8, 1.2) for _ in range(3)]
             else:
-                gamma_param = 1
-                bright_param = 1
-                cbright_param = [1, 1, 1]
+                if self.color_aug == 'v2':
+                    do_color_aug = lambda x: x
+                else:
+                    gamma_param = 1
+                    bright_param = 1
+                    cbright_param = [1, 1, 1]
 
             for key in list(inputs):
                 if 'color' in key:
@@ -334,8 +459,12 @@ class KITTIColorDepthDataset(data.Dataset):
                         raw_img = raw_img.transpose(Image.FLIP_LEFT_RIGHT)
                     raw_img = self.crop(self.color_resize(raw_img), crop_params)
                     img = self.to_tensor(raw_img)
-                    aug_img = do_fal_color_aug(img, gamma_param, bright_param,
-                                               cbright_param)
+                    if self.color_aug == 'v2':
+                        aug_img = do_color_aug(img)
+                    else:
+                        aug_img = do_fal_color_aug(img, gamma_param,
+                                                        bright_param,
+                                                        cbright_param)
                     inputs[key.replace('_raw', '')] =\
                         self.normalize(img)
                     inputs[key.replace('_raw', '_aug')] =\
@@ -344,10 +473,13 @@ class KITTIColorDepthDataset(data.Dataset):
                         for scale in self.multi_out_scale:
                             scale_img = self.multi_resize[scale](raw_img)
                             scale_img = self.to_tensor(scale_img)
-                            scale_aug_img = do_fal_color_aug(scale_img,
-                                                             gamma_param,
-                                                             bright_param,
-                                                             cbright_param)
+                            if self.color_aug == 'v2':
+                                scale_aug_img = do_color_aug(scale_img)
+                            else:
+                                scale_aug_img = do_fal_color_aug(scale_img,
+                                                                 gamma_param,
+                                                                 bright_param,
+                                                                 cbright_param)
                             inputs[key.replace('_raw', '_{}'.format(scale))] =\
                                 self.normalize(scale_img)
                             inputs[key.replace('_raw', '_{}_aug'.format(scale))] =\
@@ -370,6 +502,13 @@ class KITTIColorDepthDataset(data.Dataset):
                     hints = self.crop(self.depth_resize(raw_hints),
                                       crop_params)
                     inputs[key] = hints.to(torch.float)
+                elif 'seg' in key:
+                    raw_seg = inputs[key]
+                    if is_flip:
+                        raw_seg = torch.flip(raw_seg, dims=[2])
+                    seg = self.crop(self.depth_resize(raw_seg),
+                                      crop_params)
+                    inputs[key] = seg
 
         # resize for other modes
         else:

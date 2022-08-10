@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -109,11 +110,8 @@ class FAL_NetB(Base_of_Network):
         if self.mom_module:
             self.train_sides.append('o')
             self.fix_network = {}
-            self.fix_network['enc'] = Residual_Conv(num_ch_enc=num_ch_enc,
-                input_flow=self.raw_fal_arch).to(self.device)
-            self.fix_network['dec'] = UpSample_Layers_v2(num_ch_enc,
-                num_ch_dec, output_ch=out_num,
-                raw_fal_arch=self.raw_fal_arch).to(self.device)
+            self.fix_network['enc'] = copy.deepcopy(self.convblocks['enc']).to(self.device)
+            self.fix_network['dec'] = copy.deepcopy(self.convblocks['dec']).to(self.device)
             self.loaded_flag = False
         else:
             self.loaded_flag = True
@@ -296,7 +294,7 @@ class FAL_NetB(Base_of_Network):
         if 'disp_k' in self.inputs:
             k = self.inputs['disp_k'].unsqueeze(1).unsqueeze(1).unsqueeze(1)
         else:
-            k = torch.tensor([721.54 * 0.54], dtype=torch.float)
+            k = torch.tensor([721.54 * 0.54], dtype=torch.float) * 0.5
             k = k.unsqueeze(1).unsqueeze(1).unsqueeze(1).to(disp)
         depth = torch.abs(k) / disp
         return depth
