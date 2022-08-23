@@ -1,0 +1,2 @@
+_test: options/_base/datasets/kitti/test_384.yaml
+_base: options/OCFD-Net/train/ocfd-net_192crop_kitti_stereo.yaml

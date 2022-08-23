@@ -1,0 +1,24 @@
+train_dataset:
+  params:
+    load_KTmatrix: True
+
+visual:
+  type:
+    color_s: img
+    color_o_aug: img
+    disp_s: disp
+    proj_img_s: img
+    synth_img_s: img
+    residual_depth_s: error_pn
+    fine_disp_s: disp
+    mask_s: mask
+
+  shape: [[color_s, color_o_aug],
+          [proj_img_s, synth_img_s],
+          [disp_s, residual_depth_s],
+          [fine_disp_s, mask_s]]
+
+_train: options/_base/datasets/kitti/train_384rc.yaml
+_val: options/_base/datasets/kitti/test_384.yaml
+_base: options/_base/networks/ocfd_net.yaml
+

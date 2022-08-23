@@ -1,0 +1,7 @@
+test_dataset:
+  params:
+    full_size: [683, 512]
+    resize_before_crop: True
+
+_test: options/_base/datasets/make3d/test_256.yaml
+_base: options/OCFD-Net/train/ocfd-net_192crop_kitti_stereo.yaml
