@@ -1,0 +1,33 @@
+train_dataset:
+  params:
+    load_KTmatrix: False
+    flip_mode: img
+
+visual:
+  type:
+    color_s: img
+    color_o: img
+    disp_s: disp
+    fine_disp_s: disp
+    warp_img_fine_s: img
+    synth_img_s: img
+    delta_1_1_s: vector
+    delta_2_1_s: vector
+    delta_3_1_s: vector
+    delta_1_2_s: vector
+    delta_2_2_s: vector
+    delta_3_2_s: vector
+    delta_1_3_s: vector
+    delta_2_3_s: vector
+    delta_3_3_s: vector
+
+  shape: [[color_s,  color_s, color_o],
+          [disp_s, warp_img_fine_s, synth_img_s],
+          [fine_disp_s, [color_s, delta_3_1_s, 1], [color_s, disp_s, 2]],
+          [delta_3_1_s, delta_3_2_s, delta_3_3_s],
+          [delta_2_1_s, delta_2_2_s, delta_2_3_s],
+          [delta_1_1_s, delta_1_2_s, delta_1_3_s]]
+
+_train: options/_base/datasets/kitti/train_384rc.yaml
+_val: options/_base/datasets/kitti/test_384.yaml
+_base: options/_base/networks/sdfa_net.yaml

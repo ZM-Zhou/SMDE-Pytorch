@@ -1,0 +1,78 @@
+model:
+  type: SDFA_Net
+  params:
+    encoder: orgSwin-T-s2
+    decoder: SDFA
+    out_num: 49
+    min_disp: 2
+    max_disp: 300
+    distill_offset: True
+    do_flip_distill: True
+
+loss:
+  types:
+    - type: PhotoLoss
+      rate: 1
+      name: photo_l1
+      args:
+        pred_n: synth_img_{}
+        target_n: color_{}_aug
+        l1_rate: 1
+        other_side: True
+    - type: PhotoLoss
+      rate: 0.01
+      name: perceptual-1
+      args:
+        pred_n: synth_feats_0_{}
+        target_n: raw_feats_0_{}
+        l1_rate: 0
+        l2_rate: 1
+    - type: PhotoLoss
+      rate: 0.01
+      name: perceptual-2
+      args:
+        pred_n: synth_feats_1_{}
+        target_n: raw_feats_1_{}
+        l1_rate: 0
+        l2_rate: 1
+    - type: PhotoLoss
+      rate: 0.01
+      name: perceptual-3
+      args:
+        pred_n: synth_feats_2_{}
+        target_n: raw_feats_2_{}
+        l1_rate: 0
+        l2_rate: 1
+    - type: SmoothLoss
+      rate: 0.0008
+      name: smooth
+      args:
+        pred_n: disp_{}
+        image_n: color_{}
+        gamma_rate: 2
+        more_kernel: True
+        gray_img: True
+    - type: HintsLoss
+      rate: 0.01
+      mask: occ_fine_{}
+      name: selfhints
+      args:
+        pred_n: warp_img_fine_{}
+        pred_depth_n: fine_depth_{}
+        target_n: color_{}_norm
+        hints_n: warp_img_{}
+        hints_depth_n: tar_depth_{}
+        recons_rate: 0
+    - type: SmoothLoss
+      rate: 0.0016
+      name: smooth-2
+      args:
+        pred_n: fine_disp_{}
+        image_n: color_{}
+        gamma_rate: 2
+        more_kernel: True
+        gray_img: True
+    
+
+pred_size: [384, 1280]
+pred_norm: [0.411, 0.432, 0.45]

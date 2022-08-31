@@ -16,8 +16,8 @@ Self-supervised monocular depth estimation, aiming to learn scene depths from si
 **Results on KITTI improved test set**
 |Method|Info.|Train. Data|Sup|PP|Abs Rel.|Sq Rel.|RMSE|RMSElog|A1|Model|
 |------|-----|-----------|---|--|--------|-------|----|-------|--|-----|
-|OCFD-Net|Res50+384x1280|K|Stereo||0.070|0.270|2.821|0.104|0.949|[Baidu]()|
-|OCFD-Net|Res50+384x1280|K|Stereo|pp|0.069|0.262|2.785|0.103|0.951|[Baidu]()|
+|OCFD-Net|Res50+384x1280|K|Stereo||0.070|0.270|2.821|0.104|0.949|[Baidu](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)|
+|OCFD-Net|Res50+384x1280|K|Stereo|pp|0.069|0.262|2.785|0.103|0.951|[Baidu](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)|
 |OCFD-Net|Res50+384x1280|CS+K|Stereo||0.068|0.246|2.669|0.099|0.955|[Baidu](https://pan.baidu.com/s/1m76zppemVS1PnNnlgyYPCQ)|
 |OCFD-Net|Res50+384x1280|CS+K|Stereo|pp|0.066|0.236|2.612|0.096|0.957|[Baidu](https://pan.baidu.com/s/1m76zppemVS1PnNnlgyYPCQ)|
 
@@ -25,8 +25,8 @@ Self-supervised monocular depth estimation, aiming to learn scene depths from si
 **Results on Make3D test set** (trained on KITTI)
 |Method|Info.|Train. Data|Sup|PP|Abs Rel.|Sq Rel.|RMSE|log10|Model|
 |------|-----|-----------|---|--|--------|-------|----|-----|-----|
-|OCFD-Net|Res50+256x512|K|Stereo||0.279|2.573|6.421|0.145|[Baidu]()|
-|OCFD-Net|Res50+256x512|K|Stereo|pp|0.275|2.515|6.354|0.144|[Baidu]()|
+|OCFD-Net|Res50+256x512|K|Stereo||0.279|2.573|6.421|0.145|[Baidu](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)|
+|OCFD-Net|Res50+256x512|K|Stereo|pp|0.275|2.515|6.354|0.144|[Baidu](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)|
 |OCFD-Net|Res50+256x512|CS+K|Stereo||0.259|2.258|5.939|0.137|[Baidu](https://pan.baidu.com/s/1m76zppemVS1PnNnlgyYPCQ)|
 |OCFD-Net|Res50+256x512|CS+K|Stereo|pp|0.256|2.187|5.856|0.135|[Baidu](https://pan.baidu.com/s/1m76zppemVS1PnNnlgyYPCQ)|
 

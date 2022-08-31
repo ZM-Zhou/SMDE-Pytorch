@@ -1,0 +1,14 @@
+visual:
+  type:
+    color_s: img
+    pp_disp: disp
+    delta_1_1_s: vector
+    delta_2_1_s: vector
+    delta_3_1_s: vector
+    delta_1_3_s: vector
+    delta_2_3_s: vector
+    delta_3_3_s: vector
+  shape: [[color_s, pp_disp],
+          [delta_1_1_s, delta_1_3_s],
+          [delta_2_1_s, delta_2_3_s],
+          [delta_3_1_s, delta_3_3_s]]

@@ -1,0 +1,60 @@
+train_dataset:
+  - type: CityscapesColorDataset
+    params:
+      split_file: data_splits/cityscapes/train_extra_stereo_list.txt
+      crop_coords: [64, 64, 640, 1984]
+      full_size: [384, 1280]
+      patch_size: [192, 640]
+      normalize_params: [0.411, 0.432, 0.45]
+      flip_mode: img
+      load_KTmatrix: False
+      load_disp: False
+      load_semantic: False
+      fuse_kitti: True
+  - type: KITTIColorDepthDataset
+    params:
+      split_file: data_splits/kitti/train_list.txt
+      full_size: [384, 1280]
+      patch_size: [192, 640]
+      random_resize: True
+      normalize_params: [0.411, 0.432, 0.45]
+      flip_mode: img
+      color_aug: True
+      output_frame: ['o']
+      multi_out_scale: null
+      load_KTmatrix: False
+      load_depth: False
+      load_depthhints: False
+      is_fixK: True
+      stereo_test: False
+      jpg_test: False
+      improved_test: False
+
+visual:
+  type:
+    color_s: img
+    color_o: img
+    disp_s: disp
+    fine_disp_s: disp
+    warp_img_fine_s: img
+    synth_img_s: img
+    delta_1_1_s: vector
+    delta_2_1_s: vector
+    delta_3_1_s: vector
+    delta_1_2_s: vector
+    delta_2_2_s: vector
+    delta_3_2_s: vector
+    delta_1_3_s: vector
+    delta_2_3_s: vector
+    delta_3_3_s: vector
+
+  shape: [[color_s,  color_s, color_o],
+          [disp_s, warp_img_fine_s, synth_img_s],
+          [fine_disp_s, [color_s, delta_3_1_s, 1], [color_s, disp_s, 2]],
+          [delta_3_1_s, delta_3_2_s, delta_3_3_s],
+          [delta_2_1_s, delta_2_2_s, delta_2_3_s],
+          [delta_1_1_s, delta_1_2_s, delta_1_3_s]]
+
+_train: options/_base/datasets/kitti/train_384rc.yaml
+_val: options/_base/datasets/kitti/test_384.yaml
+_base: options/_base/networks/sdfa_net.yaml

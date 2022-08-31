@@ -1,0 +1,7 @@
+test_dataset:
+  params:
+    split_file: data_splits/kitti/test_improved_list.txt
+    improved_test: True
+
+_test: options/_base/datasets/kitti/test_384.yaml
+_base: options/SDFA-Net/train/sdfa_net-swint-m_192crop_kitti_stereo_stage2.yaml

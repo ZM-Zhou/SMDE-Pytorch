@@ -31,6 +31,7 @@ conda activate pytorch170cu11
 |[ManyDepth](options/ManyDepth) | 2021 CVPR| ✔| | [Link](https://arxiv.org/abs/2104.14540)| [Link](https://github.com/nianticlabs/manydepth)|
 |[R-MSFM](options/R-MSFM) | 2021 ICCV| ✔| ✔| [Link](https://openaccess.thecvf.com/content/ICCV2021/papers/Zhou_R-MSFM_Recurrent_Multi-Scale_Feature_Modulation_for_Monocular_Depth_Estimating_ICCV_2021_paper.pdf)| [Link](https://github.com/jsczzzk/R-MSFM)|
 |[OCFD-Net](options/OCFD-Net) | 2022 ACM-MM'| ✔| ✔| | [Link](https://github.com/ZM-Zhou/OCFD-Net_pytorch)|
+|[SDFA-Net](options/SDFA-Net) | 2022 ECCV| ✔| ✔| | [Link](https://github.com/ZM-Zhou/SDFA-Net_pytorch)|
 
 
 * `Test` : You could predict depths with their pretrained models provided by their official implementations. We have tested their performances and more details are given on their pages (click their names in the table).
@@ -55,6 +56,7 @@ We give the performances of the methods on **the KITTI raw test set** (an outdoo
 |EdgeOfDepth|Res50+320x1024|Stereo|[Official](https://pan.baidu.com/s/1yToYiunNgNQZY8tunZOmGA)|0.092|0.647|4.247|0.177|0.897|
 |OCFD-Net|Res50+384x1280|Stereo|[Trained](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)|0.091|0.576|4.036|0.174|0.901|
 |EPCDepth|Res50+320x1024|Stereo|[Trained](https://pan.baidu.com/s/1-Q8N1hPPjKz3BZXbPv_opw)|0.090|0.682|4.282|0.178|0.903|
+|SDFA-Net|SwinT+384x1280|Stereo|[Trained](https://pan.baidu.com/s/1OqnackbFrNYomp_TFYkM5g)|0.089|0.537|3.895|0.169|0.906|
 
 The methods on **the NYU v2 test set** (an indoor dataset).
 |Method|Info.|Sup|Trained|Abs Rel.|RMSE|log10|A1|
