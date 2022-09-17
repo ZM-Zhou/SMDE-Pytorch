@@ -21,17 +21,18 @@ conda activate pytorch170cu11
 |------|----|----|-----|-----|----|
 |[Monodepth2](options/Monodepth2)| 2019 ICCV| ✔| ✔| [Link](https://arxiv.org/abs/1806.01260)| [Link](https://github.com/nianticlabs/monodepth2)|
 |[DepthHints](options/DepthHints)| 2019 ICCV| ✔| ✔| [Link](https://arxiv.org/abs/1909.09051)| [Link](https://github.com/nianticlabs/depth-hints)|
-|[FAL-Net](options/FALB-49)| 2020 NeurIPS | ✔| ✔| [Link](https://proceedings.neurips.cc/paper/2020/hash/951124d4a093eeae83d9726a20295498-Abstract.html)| [Link](https://github.com/JuanLuisGonzalez/FAL_net)|
-|[P2Net](options/P2Net) | 2020 ECCV| ✔| | [Link](https://arxiv.org/abs/2007.07696)| [Link](https://github.com/svip-lab/Indoor-SfMLearner)|
 |[EdgeOfDepth](options/EdgeOfDepth)| 2020 CVPR| ✔| | [Link](https://openaccess.thecvf.com/content_CVPR_2020/html/Zhu_The_Edge_of_Depth_Explicit_Constraints_Between_Segmentation_and_Depth_CVPR_2020_paper.html)| [Link](https://github.com/TWJianNuo/EdgeDepth-Release)|
 |[PackNet](options/PackNet)| 2020 CVPR| ✔| | [Link](https://openaccess.thecvf.com/content_CVPR_2020/html/Guizilini_3D_Packing_for_Self-Supervised_Monocular_Depth_Estimation_CVPR_2020_paper.html)| [Link](https://github.com/TRI-ML/packnet-sfm)|
+|[P2Net](options/P2Net) | 2020 ECCV| ✔| | [Link](https://arxiv.org/abs/2007.07696)| [Link](https://github.com/svip-lab/Indoor-SfMLearner)|
+|[FAL-Net](options/FALB-49)| 2020 NeurIPS | ✔| ✔| [Link](https://proceedings.neurips.cc/paper/2020/hash/951124d4a093eeae83d9726a20295498-Abstract.html)| [Link](https://github.com/JuanLuisGonzalez/FAL_net)|
+|[HRDepth](options/HRDepth) | 2021 AAAI| ✔| ✔| [Link](https://ojs.aaai.org/index.php/AAAI/article/view/16329)| [Link](https://github.com/shawLyu/HR-Depth)|
+|[DIFFNet](options/DIFFNet) | 2021 BMCV| ✔| ✔| [Link](https://arxiv.org/abs/2209.07088) | [Link](https://github.com/ZM-Zhou/SDFA-Net_pytorch)|
+|[ManyDepth](options/ManyDepth) | 2021 CVPR| ✔| | [Link](https://arxiv.org/abs/2104.14540)| [Link](https://github.com/nianticlabs/manydepth)|
 |[EPCDepth](options/EPCDepth) | 2021 ICCV| ✔| ✔| [Link](https://arxiv.org/abs/2109.12484)| [Link](https://github.com/prstrive/EPCDepth)|
 |[FSRE-Depth](options/EPCDepth) | 2021 ICCV| ✔| ✔| [Link](https://openaccess.thecvf.com/content/ICCV2021/html/Jung_Fine-Grained_Semantics-Aware_Representation_Enhancement_for_Self-Supervised_Monocular_Depth_Estimation_ICCV_2021_paper.html)| [Link](https://github.com/hyBlue/FSRE-Depth)|
-|[HRDepth](options/HRDepth) | 2021 AAAI| ✔| ✔| [Link](https://ojs.aaai.org/index.php/AAAI/article/view/16329)| [Link](https://github.com/shawLyu/HR-Depth)|
-|[ManyDepth](options/ManyDepth) | 2021 CVPR| ✔| | [Link](https://arxiv.org/abs/2104.14540)| [Link](https://github.com/nianticlabs/manydepth)|
 |[R-MSFM](options/R-MSFM) | 2021 ICCV| ✔| ✔| [Link](https://openaccess.thecvf.com/content/ICCV2021/papers/Zhou_R-MSFM_Recurrent_Multi-Scale_Feature_Modulation_for_Monocular_Depth_Estimating_ICCV_2021_paper.pdf)| [Link](https://github.com/jsczzzk/R-MSFM)|
-|[OCFD-Net](options/OCFD-Net) | 2022 ACM-MM'| ✔| ✔| | [Link](https://github.com/ZM-Zhou/OCFD-Net_pytorch)|
-|[SDFA-Net](options/SDFA-Net) | 2022 ECCV| ✔| ✔| | [Link](https://github.com/ZM-Zhou/SDFA-Net_pytorch)|
+|[OCFD-Net](options/OCFD-Net) (Ours)| 2022 ACM-MM'| ✔| ✔| [Link](https://arxiv.org/abs/2203.10925) | [Link](https://github.com/ZM-Zhou/OCFD-Net_pytorch)|
+|[SDFA-Net](options/SDFA-Net) (Ours)| 2022 ECCV| ✔| ✔| [Link](https://arxiv.org/abs/2209.07088) | [Link](https://github.com/ZM-Zhou/SDFA-Net_pytorch)|
 
 
 * `Test` : You could predict depths with their pretrained models provided by their official implementations. We have tested their performances and more details are given on their pages (click their names in the table).
@@ -52,6 +53,7 @@ We give the performances of the methods on **the KITTI raw test set** (an outdoo
 |Monodepth2|Res18+320x1024|Stereo|[Trained](https://pan.baidu.com/s/1Kj9HOo15murscIsOchMEUA)|0.104|0.824|4.747|0.200|0.875|
 |HRDepth|Res18+384x1280|Mono|[Trained](https://pan.baidu.com/s/1QJhkNhXTRUQimwomRoP96Q)|0.102|0.719|4.396|0.178|0.897|
 |FAL-NetB|N=49+375x1242|Stereo|[Trained](https://pan.baidu.com/s/1PhUJ_4s0nm41a49viZRczg)|0.099|0.625|4.197|0.182|0.885|
+|DIFFNet|HR18+320x1024|Mono|[Trained](https://pan.baidu.com/s/1xblmyPXNMr_432BN10BUYA)|0.099|0.688|4.345|0.176|0.901|
 |DepthHints|Res50+320x1024|Stereo|[Trained](https://pan.baidu.com/s/12xv0IY_hcO1YtsEZJ2Vuog)|0.094|0.680|4.333|0.181|0.894|
 |EdgeOfDepth|Res50+320x1024|Stereo|[Official](https://pan.baidu.com/s/1yToYiunNgNQZY8tunZOmGA)|0.092|0.647|4.247|0.177|0.897|
 |OCFD-Net|Res50+384x1280|Stereo|[Trained](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)|0.091|0.576|4.036|0.174|0.901|
@@ -288,6 +290,7 @@ coming soon
 [Monodepth2](https://github.com/nianticlabs/monodepth2)  
 [FAL-Net](https://github.com/JuanLuisGonzalez/FAL_net)  
 [DepthHints](https://github.com/nianticlabs/depth-hints)  
+[DIFFNet](https://github.com/brandleyzhou/DIFFNet)  
 [EPCDepth](https://github.com/prstrive/EPCDepth)  
 [EdgeOfDepth](https://github.com/TWJianNuo/EdgeDepth-Release)  
 [PackNet](https://github.com/TRI-ML/packnet-sfm)  

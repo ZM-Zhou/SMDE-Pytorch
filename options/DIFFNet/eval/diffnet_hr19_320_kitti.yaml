@@ -1,0 +1,2 @@
+_test: options/_base/datasets/kitti/test_320.yaml
+_base: options/_base/networks/diffnet.yaml

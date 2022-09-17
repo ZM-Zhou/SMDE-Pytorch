@@ -3,10 +3,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from models.backbones.hrnet_enc import hrnet18
 from models.backbones.resnet import ResNet_Backbone
 from models.backbones.packnet_enc import PackEncoder
 from models.base_net import Base_of_Network
 from models.decoders.cma_decoder import CMA
+from models.decoders.diff_decoder import DIFFNetDecoder
 from models.decoders.hrdepth_dec import HRDepthDecoder
 from models.decoders.packnet_dec import PackDecoder
 from models.decoders.pose import PoseDecoder, PoseNet
@@ -25,6 +27,7 @@ class Monodepth2(Base_of_Network):
             data_mode=[1, -1],  # ["o"]
             use_depthhints=False,
             use_packnet=False,
+            use_diffarc=False,
             use_hrdec=False,
             use_fsredec=False,
             set_SCALE=None,
@@ -37,6 +40,7 @@ class Monodepth2(Base_of_Network):
         self.data_mode = data_mode
         self.use_depthhints = use_depthhints
         self.use_packnet = use_packnet
+        self.use_diffarc = use_diffarc
         self.use_hrdec = use_hrdec
         self.use_fsredec = use_fsredec
         self.set_SCALE = set_SCALE
@@ -52,21 +56,28 @@ class Monodepth2(Base_of_Network):
                 self.net_module['pose_encoder'] = nn.Identity()
                 self.net_module['pose_decoder'] = PoseNet(1)
         else:
-            self.net_module['encoder'] = ResNet_Backbone(encoder_layer)
-            if encoder_layer == 18:
-                enc_ch_num = [64, 64, 128, 256, 512]
+            if self.use_diffarc:
+                self.net_module['encoder'] =  hrnet18()
+                enc_ch_num = [64, 18, 36, 72, 144]
+                self.net_module['decoder'] = DIFFNetDecoder(enc_ch_num,
+                                                            scales=[0, 1, 2, 3])
             else:
-                enc_ch_num = [64, 256, 512, 1024, 2048]
-            if self.use_hrdec:
-                self.net_module['decoder'] = HRDepthDecoder(enc_ch_num)
-            if self.use_fsredec:
-                self.net_module['decoder'] = CMA(enc_ch_num)
-            else:
-                self.net_module['decoder'] = UpSample_Layers(enc_ch_num)
+                self.net_module['encoder'] = ResNet_Backbone(encoder_layer)
+                if encoder_layer == 18:
+                    enc_ch_num = [64, 64, 128, 256, 512]
+                else:
+                    enc_ch_num = [64, 256, 512, 1024, 2048]
+                if self.use_hrdec:
+                    self.net_module['decoder'] = HRDepthDecoder(enc_ch_num)
+                if self.use_fsredec:
+                    self.net_module['decoder'] = CMA(enc_ch_num)
+                else:
+                    self.net_module['decoder'] = UpSample_Layers(enc_ch_num)
 
             if self.mono_train:
                 self.net_module['pose_encoder'] = ResNet_Backbone(encoder_layer,
                                                                   in_ch=6)
+                enc_ch_num = [64, 64, 128, 256, 512]                  
                 self.net_module['pose_decoder'] = PoseDecoder(
                     enc_ch_num, num_input_features=1, num_frames_to_predict_for=2)
 
@@ -84,8 +95,10 @@ class Monodepth2(Base_of_Network):
             losses = {}
             losses['loss'] = 0
             train_side = 's'
-
-            x = (inputs['color_{}_aug'.format(train_side)] - 0.45) / 0.225
+            if self.use_diffarc or self.use_packnet:
+                x = inputs['color_{}_aug'.format(train_side)]
+            else:
+                x = (inputs['color_{}_aug'.format(train_side)] - 0.45) / 0.225
             features = self.net_module['encoder'](x)
             disp_outputs = self.net_module['decoder'](features, x.shape)
 
@@ -138,7 +151,7 @@ class Monodepth2(Base_of_Network):
             return outputs, losses
 
         else:
-            if self.use_packnet:
+            if self.use_diffarc or self.use_packnet:
                 x = inputs['color_s']
             else:
                 x = (inputs['color_s'] - 0.45) / 0.225
