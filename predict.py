@@ -36,6 +36,11 @@ parser.add_argument('--input_size',
                     nargs='+',
                     default=None,
                     help='the size of input images')
+parser.add_argument('--out_dir',
+                    dest='out_dir',
+                    type=str,
+                    default=None,
+                    help='the folder name for the outputs')
 
 parser.add_argument('--cpu',
                     dest='cpu',
@@ -137,13 +142,17 @@ def predict():
     network = load_model_for_evaluate(opts.trained_model, network)
     network.eval()
 
-    if os.path.isfile(opts.image_path):
-        save_path = os.path.dirname(opts.image_path)
+    if opts.out_dir is not None:
+        os.makedirs(opts.out_dir, exist_ok=True)
+        save_path = opts.out_dir
     else:
-        save_path = opts.image_path
+        if os.path.isfile(opts.image_path):
+            save_path = os.path.dirname(opts.image_path)
+        else:
+            save_path = opts.image_path
     
-    visualizer = Visualizer(save_path, {'type':{'pp_disp': 'disp'},
-                                        'shape': [['pp_disp']]})
+    visualizer = Visualizer(save_path, {'type':{'pp_depth': 'depth'},
+                                        'shape': [['pp_depth']]})
 
     to_tensor = tf.ToTensor()
     normalize = tf.Normalize(mean=opts_dic['pred_norm'],

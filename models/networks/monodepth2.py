@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -6,6 +7,7 @@ import torch.nn.functional as F
 from models.backbones.hrnet_enc import hrnet18
 from models.backbones.resnet import ResNet_Backbone
 from models.backbones.packnet_enc import PackEncoder
+from models.backbones.swin import get_orgwintrans_backbone
 from models.base_net import Base_of_Network
 from models.decoders.cma_decoder import CMA
 from models.decoders.diff_decoder import DIFFNetDecoder
@@ -30,6 +32,7 @@ class Monodepth2(Base_of_Network):
             use_diffarc=False,
             use_hrdec=False,
             use_fsredec=False,
+            use_swin=False,
             set_SCALE=None,
     ):
         self.init_opts = locals()
@@ -43,6 +46,7 @@ class Monodepth2(Base_of_Network):
         self.use_diffarc = use_diffarc
         self.use_hrdec = use_hrdec
         self.use_fsredec = use_fsredec
+        self.use_swin = use_swin
         self.set_SCALE = set_SCALE
 
         self.mono_train = (1 in data_mode or -1 in data_mode)
@@ -62,11 +66,15 @@ class Monodepth2(Base_of_Network):
                 self.net_module['decoder'] = DIFFNetDecoder(enc_ch_num,
                                                             scales=[0, 1, 2, 3])
             else:
-                self.net_module['encoder'] = ResNet_Backbone(encoder_layer)
-                if encoder_layer == 18:
-                    enc_ch_num = [64, 64, 128, 256, 512]
+                if use_swin:
+                    self.net_module['encoder'], enc_ch_num = get_orgwintrans_backbone('orgSwin-T', True)
+                    enc_ch_num = copy.deepcopy(enc_ch_num)
                 else:
-                    enc_ch_num = [64, 256, 512, 1024, 2048]
+                    self.net_module['encoder'] = ResNet_Backbone(encoder_layer)
+                    if encoder_layer == 18:
+                        enc_ch_num = [64, 64, 128, 256, 512]
+                    else:
+                        enc_ch_num = [64, 256, 512, 1024, 2048]
                 if self.use_hrdec:
                     self.net_module['decoder'] = HRDepthDecoder(enc_ch_num)
                 if self.use_fsredec:

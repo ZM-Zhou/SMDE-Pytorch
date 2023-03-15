@@ -294,7 +294,7 @@ class FAL_NetB(Base_of_Network):
         if 'disp_k' in self.inputs:
             k = self.inputs['disp_k'].unsqueeze(1).unsqueeze(1).unsqueeze(1)
         else:
-            k = torch.tensor([721.54 * 0.54], dtype=torch.float) * 0.5
+            k = torch.tensor([721.54 * 0.54], dtype=torch.float)
             k = k.unsqueeze(1).unsqueeze(1).unsqueeze(1).to(disp)
         depth = torch.abs(k) / disp
         return depth
