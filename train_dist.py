@@ -187,10 +187,8 @@ class Trainer(object):
             dist.broadcast(random_num, src=0)
             seed = random_num.item()
 
-        torch.manual_seed(seed)
-        torch.cuda.manual_seed_all(seed)
-        np.random.seed(seed)
-        random.seed(seed)
+        self._set_all_seed(seed)
+        self.seed = seed
 
         # Initialize the options
         opts_dic = read_yaml_options(opts.exp_opts)
@@ -315,9 +313,21 @@ class Trainer(object):
         else:
             self.visualizer = False
 
+    def _set_all_seed(self, seed):
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        np.random.seed(seed)
+        random.seed(seed)
+    
+    def _stable(self, dataloader, seed):
+        self._set_all_seed(seed)
+        return dataloader
+
     def _process_epoch(self):
         st_batch_time = time.time()
-        for batch_idx, inputs in enumerate(self.train_loader):
+        for batch_idx, inputs in\
+            enumerate(self._stable(self.train_loader, self.seed + self.epoch)):
             for ipt_key, ipt in inputs.items():
                 if isinstance(ipt, torch.Tensor):
                     inputs[ipt_key] = ipt.to(self.device, non_blocking=True)
@@ -337,6 +347,12 @@ class Trainer(object):
                 for k, v in losses.items():
                     if '-value' in k:
                         print(k, v)
+                self.saver.save_model(self.network,
+                                      self.optimizer,
+                                      self.epoch,
+                                      self.batch_step,
+                                      None,
+                                      name='nan')
                 exit()
             for idx_optim, optimizer_item in enumerate(self.optimizer):
                 if idx_optim == 0:
@@ -409,7 +425,7 @@ class Trainer(object):
             self.logger.log_for_start_training(self.optimizer)
             self.network.train()
             if self.world_size != 1:
-                self.train_sampler.set_epoch(self.epoch)
+                self.train_sampler.set_epoch(self.seed + self.epoch)
             self._process_epoch()
             # save the model
             if opts.save_freq is not None and self.epoch % opts.save_freq == 0:
@@ -418,7 +434,7 @@ class Trainer(object):
                                       self.epoch,
                                       self.batch_step,
                                       None,
-                                      name=str(self.epoch))
+                                      name=self.epoch)
             # start testing
             self.logger.log_for_start_testing()
             with torch.no_grad():
