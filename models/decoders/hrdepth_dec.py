@@ -23,7 +23,15 @@ class HRDepthDecoder(nn.Module):
         self.attention_position = ["31", "22", "13", "04"]
         self.non_attention_position = ["01", "11", "21", "02", "12", "03"]
             
+        use_ch_enc = [64, 64, 128, 256, 512]
+        assert len(num_ch_enc) == len(use_ch_enc)
+            
         self.convs = nn.ModuleDict()
+        for ch_idx, (use_ch, in_ch) in enumerate(zip(use_ch_enc, num_ch_enc)):
+            self.convs['IN_{}_Conv'.format(ch_idx)] = Conv1x1(in_ch, use_ch)
+        num_ch_enc = use_ch_enc
+        self.num_ch_enc = use_ch_enc
+
         for j in range(5):
             for i in range(5 - j):
                 # upconv 0
@@ -96,7 +104,8 @@ class HRDepthDecoder(nn.Module):
         outputs = {}
         features = {}
         for i in range(5):
-            features["X_{}0".format(i)] = input_features[i]
+            features["X_{}0".format(i)] = self.convs['IN_{}_Conv'.format(i)](input_features[i])
+            # features["X_{}0".format(i)] = input_features[i]
         # Network architecture
         for index in self.all_position:
             row = int(index[0])

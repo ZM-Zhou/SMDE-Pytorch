@@ -77,13 +77,13 @@ class Monodepth2(Base_of_Network):
                         enc_ch_num = [64, 256, 512, 1024, 2048]
                 if self.use_hrdec:
                     self.net_module['decoder'] = HRDepthDecoder(enc_ch_num)
-                if self.use_fsredec:
+                elif self.use_fsredec:
                     self.net_module['decoder'] = CMA(enc_ch_num)
                 else:
                     self.net_module['decoder'] = UpSample_Layers(enc_ch_num)
 
             if self.mono_train:
-                self.net_module['pose_encoder'] = ResNet_Backbone(encoder_layer,
+                self.net_module['pose_encoder'] = ResNet_Backbone(18,
                                                                   in_ch=6)
                 enc_ch_num = [64, 64, 128, 256, 512]                  
                 self.net_module['pose_decoder'] = PoseDecoder(
