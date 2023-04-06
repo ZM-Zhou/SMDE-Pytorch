@@ -7,28 +7,28 @@ Self-supervised monocular depth estimation, aiming to learn scene depths from si
 **Results on KITTI raw test set**
 |Method|Info.|Train. Data|Sup|PP|Abs Rel.|Sq Rel.|RMSE|RMSElog|A1|Model|
 |------|-----|-----------|---|--|--------|-------|----|-------|--|-----|
-|OCFD-Net|Res50+384x1280|K|Stereo||0.091|0.576|4.036|0.174|0.901|[Baidu](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)|
-|OCFD-Net|Res50+384x1280|K|Stereo|pp|0.090|0.563|4.005|0.172|0.903|[Baidu](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)|
-|OCFD-Net|Res50+384x1280|CS+K|Stereo||0.088|0.554|3.944|0.171|0.906|[Baidu](https://pan.baidu.com/s/1m76zppemVS1PnNnlgyYPCQ)|
-|OCFD-Net|Res50+384x1280|CS+K|Stereo|pp|0.086|0.536|3.889|0.169|0.909|[Baidu](https://pan.baidu.com/s/1m76zppemVS1PnNnlgyYPCQ)|
+|OCFD-Net|Res50+384x1280|K|Stereo||0.091|0.576|4.036|0.174|0.901|[Baidu](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)/[Google](https://drive.google.com/file/d/1GnFUVg9e2PbpNBFjY9-gz4s67q8defI1/view?usp=sharing)|
+|OCFD-Net|Res50+384x1280|K|Stereo|pp|0.090|0.563|4.005|0.172|0.903|[Baidu](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)/[Google](https://drive.google.com/file/d/1GnFUVg9e2PbpNBFjY9-gz4s67q8defI1/view?usp=sharing)|
+|OCFD-Net|Res50+384x1280|CS+K|Stereo||0.088|0.554|3.944|0.171|0.906|[Baidu](https://pan.baidu.com/s/1m76zppemVS1PnNnlgyYPCQ)/[Google](https://drive.google.com/file/d/1aFaGuOO4EUyf_c45EIY6r1gXM9afZOnd/view?usp=sharing)|
+|OCFD-Net|Res50+384x1280|CS+K|Stereo|pp|0.086|0.536|3.889|0.169|0.909|[Baidu](https://pan.baidu.com/s/1m76zppemVS1PnNnlgyYPCQ)/[Google](https://drive.google.com/file/d/1aFaGuOO4EUyf_c45EIY6r1gXM9afZOnd/view?usp=sharing)|
 
 
 **Results on KITTI improved test set**
 |Method|Info.|Train. Data|Sup|PP|Abs Rel.|Sq Rel.|RMSE|RMSElog|A1|Model|
 |------|-----|-----------|---|--|--------|-------|----|-------|--|-----|
-|OCFD-Net|Res50+384x1280|K|Stereo||0.070|0.270|2.821|0.104|0.949|[Baidu](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)|
-|OCFD-Net|Res50+384x1280|K|Stereo|pp|0.069|0.262|2.785|0.103|0.951|[Baidu](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)|
-|OCFD-Net|Res50+384x1280|CS+K|Stereo||0.068|0.246|2.669|0.099|0.955|[Baidu](https://pan.baidu.com/s/1m76zppemVS1PnNnlgyYPCQ)|
-|OCFD-Net|Res50+384x1280|CS+K|Stereo|pp|0.066|0.236|2.612|0.096|0.957|[Baidu](https://pan.baidu.com/s/1m76zppemVS1PnNnlgyYPCQ)|
+|OCFD-Net|Res50+384x1280|K|Stereo||0.070|0.270|2.821|0.104|0.949|[Baidu](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)/[Google](https://drive.google.com/file/d/1GnFUVg9e2PbpNBFjY9-gz4s67q8defI1/view?usp=sharing)|
+|OCFD-Net|Res50+384x1280|K|Stereo|pp|0.069|0.262|2.785|0.103|0.951|[Baidu](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)/[Google](https://drive.google.com/file/d/1GnFUVg9e2PbpNBFjY9-gz4s67q8defI1/view?usp=sharing)|
+|OCFD-Net|Res50+384x1280|CS+K|Stereo||0.068|0.246|2.669|0.099|0.955|[Baidu](https://pan.baidu.com/s/1m76zppemVS1PnNnlgyYPCQ)/[Google](https://drive.google.com/file/d/1aFaGuOO4EUyf_c45EIY6r1gXM9afZOnd/view?usp=sharing)|
+|OCFD-Net|Res50+384x1280|CS+K|Stereo|pp|0.066|0.236|2.612|0.096|0.957|[Baidu](https://pan.baidu.com/s/1m76zppemVS1PnNnlgyYPCQ)/[Google](https://drive.google.com/file/d/1aFaGuOO4EUyf_c45EIY6r1gXM9afZOnd/view?usp=sharing)|
 
 
 **Results on Make3D test set** (trained on KITTI)
 |Method|Info.|Train. Data|Sup|PP|Abs Rel.|Sq Rel.|RMSE|log10|Model|
 |------|-----|-----------|---|--|--------|-------|----|-----|-----|
-|OCFD-Net|Res50+256x512|K|Stereo||0.279|2.573|6.421|0.145|[Baidu](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)|
-|OCFD-Net|Res50+256x512|K|Stereo|pp|0.275|2.515|6.354|0.144|[Baidu](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)|
-|OCFD-Net|Res50+256x512|CS+K|Stereo||0.259|2.258|5.939|0.137|[Baidu](https://pan.baidu.com/s/1m76zppemVS1PnNnlgyYPCQ)|
-|OCFD-Net|Res50+256x512|CS+K|Stereo|pp|0.256|2.187|5.856|0.135|[Baidu](https://pan.baidu.com/s/1m76zppemVS1PnNnlgyYPCQ)|
+|OCFD-Net|Res50+256x512|K|Stereo||0.279|2.573|6.421|0.145|[Baidu](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)/[Google](https://drive.google.com/file/d/1GnFUVg9e2PbpNBFjY9-gz4s67q8defI1/view?usp=sharing)|
+|OCFD-Net|Res50+256x512|K|Stereo|pp|0.275|2.515|6.354|0.144|[Baidu](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)/[Google](https://drive.google.com/file/d/1GnFUVg9e2PbpNBFjY9-gz4s67q8defI1/view?usp=sharing)|
+|OCFD-Net|Res50+256x512|CS+K|Stereo||0.259|2.258|5.939|0.137|[Baidu](https://pan.baidu.com/s/1m76zppemVS1PnNnlgyYPCQ)/[Google](https://drive.google.com/file/d/1aFaGuOO4EUyf_c45EIY6r1gXM9afZOnd/view?usp=sharing)|
+|OCFD-Net|Res50+256x512|CS+K|Stereo|pp|0.256|2.187|5.856|0.135|[Baidu](https://pan.baidu.com/s/1m76zppemVS1PnNnlgyYPCQ)/[Google](https://drive.google.com/file/d/1aFaGuOO4EUyf_c45EIY6r1gXM9afZOnd/view?usp=sharing)|
 
 
-* code for all the download links is `smde`
+* code for all the download links of pan Baidu is `smde`.
