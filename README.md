@@ -1,13 +1,19 @@
 # Self-supervised Monocular Depth Estimation with Pytorch
 The repository is to build a fair environment where the Self-supervised Monocular Depth Estimation (SMDE) methods could be evaluated and developed.
+## Welcome to V2.0
+In V2.0, you can compute the FLOPs (supported by thop) and infrerence speeds simply. 
+We also supports more flexible traning configs such as dividing one training iteration in multiple steps and setting different loss fuctions for different parameters (e.g. used in TiO-Depth). 
+We have tried our best to update all the methods in V1.0 to V2.0 and we holp it would be helpful.
+BTW, our new method TiO-Depth was accpted to ICCV 2023 !! and it was incloud in this repo.
+
 ## About SMDE-Pytorch
 We build this repository with Pytorch for evaluating and developing the Self-supervised Monocular Depth Estimation (SMDE) methods. The main targets of the SMDE-Pytorch are:
 * Predict depths with typical SMDE methods (with their pretrained models) with simple commands.
-* Evaluate the performances of the SMDE methods more fairly.
-* Train and modify the existing SMDE methods simply (coming soon).
-* Develop your methods quickly with the modular network parts (coming soon).
+* Evaluate the performances (including the FLOPs and speed) of the SMDE methods more fairly.
+* Train and modify the existing SMDE methods simply.
+* Develop your methods quickly with the modular network parts.
 
-If you have any questions or suggestions, please make an issue or contact us by `zhouzhengming2020@ia.ac.cn`. If you like the work and click the **Star**, we will be happy~
+If you have any questions or suggestions, please make an issue or contact us by `zm_zhou1998@163.com` (Maybe I couldn't reply soon due to work.). If you like the work and click the **Star**, we will be happy~
 
 ## Setup
 We built and tested the repository with Ubuntu 18.04, CUDA 11.0, Python 3.7.9, and Pytorch 1.7.0. For using this repository, we recommend creating a virtual environment by [Anaconda](https://www.anaconda.com/products/individual). Please open a terminal in the root of the repository folder for running the following commands and scripts.
@@ -33,7 +39,7 @@ conda activate pytorch170cu11
 |[R-MSFM](options/R-MSFM) | 2021 ICCV| ✔| ✔| [Link](https://openaccess.thecvf.com/content/ICCV2021/papers/Zhou_R-MSFM_Recurrent_Multi-Scale_Feature_Modulation_for_Monocular_Depth_Estimating_ICCV_2021_paper.pdf)| [Link](https://github.com/jsczzzk/R-MSFM)|
 |[OCFD-Net](options/OCFD-Net) (Ours)| 2022 ACM-MM'| ✔| ✔| [Link](https://arxiv.org/abs/2203.10925) | [Link](https://github.com/ZM-Zhou/OCFD-Net_pytorch)|
 |[SDFA-Net](options/SDFA-Net) (Ours)| 2022 ECCV| ✔| ✔| [Link](https://arxiv.org/abs/2209.07088) | [Link](https://github.com/ZM-Zhou/SDFA-Net_pytorch)|
-
+|[TiO-Depth](options/TiO-Depth) (Ours)| 2023 ICCV| ✔| ✔| [Link]() | [Link](https://github.com/ZM-Zhou/TiO-Depth_pytorch)|
 
 * `Test` : You could predict depths with their pretrained models provided by their official implementations. We have tested their performances and more details are given on their pages (click their names in the table).
 * `Train`: We have trained the method with this repository and the trained model achieves competitive or better performances compared to the official version.
@@ -58,7 +64,8 @@ We give the performances of the methods on **the KITTI raw test set** (an outdoo
 |EdgeOfDepth|Res50+320x1024|Stereo|[Official](https://pan.baidu.com/s/1yToYiunNgNQZY8tunZOmGA)|0.092|0.647|4.247|0.177|0.897|
 |OCFD-Net|Res50+384x1280|Stereo|[Trained](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)|0.091|0.576|4.036|0.174|0.901|
 |EPCDepth|Res50+320x1024|Stereo|[Trained](https://pan.baidu.com/s/1-Q8N1hPPjKz3BZXbPv_opw)|0.090|0.682|4.282|0.178|0.903|
-|SDFA-Net|SwinT+384x1280|Stereo|[Trained](https://pan.baidu.com/s/1OqnackbFrNYomp_TFYkM5g)|0.089|0.537|3.895|0.169|0.906|
+|SDFA-Net|SwinT*+384x1280|Stereo|[Trained](https://pan.baidu.com/s/1OqnackbFrNYomp_TFYkM5g)|0.089|0.537|3.895|0.169|0.906|
+|TiO-Depth|SwinT*+384x1280|Stereo||[Baidu](https://pan.baidu.com/s/1rNZvLDcTSGq5XOBFHZRTjg)|0.085|0.544|3.919|0.169|0.911|
 
 The methods on **the NYU v2 test set** (an indoor dataset).
 |Method|Info.|Sup|Trained|Abs Rel.|RMSE|log10|A1|
@@ -286,6 +293,8 @@ coming soon
 
 ## References
 [Mmsegmentation](https://github.com/open-mmlab/mmsegmentation)  
+[Mmcv](https://github.com/open-mmlab/mmcv)  
+[Mmengine](https://github.com/open-mmlab/mmengine)  
 [PaddleSeg](https://github.com/PaddlePaddle/PaddleSeg)  
 [Monodepth2](https://github.com/nianticlabs/monodepth2)  
 [FAL-Net](https://github.com/JuanLuisGonzalez/FAL_net)  

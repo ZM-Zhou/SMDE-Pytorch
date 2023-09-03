@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.models.vgg import vgg19
 
-from models.base_net import Base_of_Network
+from models.base_model import Base_of_Model
 from models.backbones.resnet import ResNet_Backbone
 from models.backbones.swin import get_orgwintrans_backbone
 from models.decoders.sdfa_dec import SDFA_Decoder
@@ -13,7 +13,7 @@ from models.decoders.sdfa_dec import SDFA_Decoder
 from utils import platform_manager
 
 @platform_manager.MODELS.add_module
-class SDFA_Net(Base_of_Network):
+class SDFA_Net(Base_of_Model):
     """Network with the SDFA module for self-supervised monocular deoth
        estimation.
 
@@ -131,159 +131,26 @@ class SDFA_Net(Base_of_Network):
 
         # Initialize the train side
         self.train_sides = ['s']
-
-    def forward(self, inputs, is_train=True):
-        self.inputs = inputs
-        outputs = {}
-        if is_train:
-            losses = {}
-            losses['loss'] = 0
-
-            directs = self.inputs['direct']
-            directs = directs.unsqueeze(1).unsqueeze(1).unsqueeze(1)
-
-            outputs['color_s_norm'] = self.image_base + self.inputs['color_s']
-            outputs['color_o_norm'] = self.image_base + self.inputs['color_o']
-            for train_side in self.train_sides:
-                # oside is used to select the disparity transformer
-                oside = 'o' if train_side == 's' else 's'
-
-                # generate the train side disparity
-                raw_volume = self._get_dispvolume_from_img(train_side)
-                if isinstance(raw_volume, tuple):
-                    raw_volume = self._process_net_outputs(
-                        raw_volume, outputs, losses, train_side)
-
-                d_volume = raw_volume.unsqueeze(1)
-
-                p_volume = self._get_probvolume_from_dispvolume(d_volume)
-                pred_disp = self._get_disp_from_probvolume(p_volume, directs)
-                w_d_volume = self.transformer[oside]\
-                    .get_warped_volume(d_volume, directs)
-                w_p_volume = self._get_probvolume_from_dispvolume(w_d_volume)
-                
-                # biuld the outputs
-                outputs['disp_{}'.format(train_side)] = pred_disp
-                outputs['tar_disp_{}'.format(train_side)] = pred_disp.detach()
-                outputs['depth_{}'.format(train_side)] =\
-                    self._trans_depth_and_disp(pred_disp)
-
-                t_img_aug = self.inputs['color_{}_aug'.format(train_side)]
-
-                # generate the synthetic image in other side
-                # named side but its synthesized the image of other side
-                w_img = self.transformer[oside]\
-                    .get_warped_frame(t_img_aug, directs)
-                synth_img = (w_p_volume * w_img).sum(dim=2)
-                outputs['synth_img_{}'.format(train_side)] = synth_img
-                
-                if self.distill_offset:
-                    d_volume_fine = outputs['fine_volume'].unsqueeze(1)
-                    p_volume_fine = self._get_probvolume_from_dispvolume(
-                        d_volume_fine)
-                    pred_disp_fine = self._get_disp_from_probvolume(
-                        p_volume_fine, directs)
-                    pred_depth_fine = self._trans_depth_and_disp(
-                        pred_disp_fine)
-
-                    side_flag = 1 if train_side == 's' else -1
-                    outputs['fine_disp_{}'.format(train_side)] = pred_disp_fine
-                    outputs['fine_depth_{}'.format(
-                        train_side)] = pred_depth_fine
-                    outputs['tar_depth_{}'.format(
-                        train_side)] = self._trans_depth_and_disp(outputs[
-                            'tar_disp_{}'.format(train_side)].detach())
-
-                    source_image = outputs['color_{}_norm'.format(oside)]
-                    warp_img_fine, blend_mask = self.transformer[
-                        train_side].get_warp_with_disp(
-                            -pred_disp_fine, source_image,
-                            side_flag * directs)
-                    warp_img, _ = self.transformer[
-                        train_side].get_warp_with_disp(
-                            -pred_disp.detach(), source_image,
-                            side_flag * directs)
-
-                    occ_mask = self.mask_builder[0](
-                        pred_disp_fine, -side_flag * self.inputs['direct'])
-                    outputs['warp_img_fine_{}'.format(
-                        train_side)] = warp_img_fine
-                    outputs['warp_img_{}'.format(train_side)] = warp_img
-                    outputs['occ_fine_{}'.format(train_side)] = (
-                        (occ_mask > 0.5) * blend_mask).to(torch.float)
-
-
-            # extract features by vgg
-            for train_side in self.train_sides:
-                oside = 'o' if train_side == 's' else 's'
-                raw_img = self.inputs['color_{}_aug'.format(oside)]
-                synth_img = outputs['synth_img_{}'.format(train_side)]
-
-                with torch.no_grad():
-                    raw_feats = self.feat_net.get_feats(raw_img)
-                synth_feats = self.feat_net.get_feats(synth_img)
-
-                for feat_idx in range(3):
-                    rawf_name = 'raw_feats_{}_{}'.format(feat_idx, train_side)
-                    outputs[rawf_name] = raw_feats[feat_idx]
-                    synthf_name = 'synth_feats_{}_{}'.format(
-                        feat_idx, train_side)
-                    outputs[synthf_name] = synth_feats[feat_idx]
-
-            # compute the losses
-            for train_side in self.train_sides:
-                self._compute_losses(outputs,
-                                     train_side,
-                                     losses,
-                                     add_loss=True)
-            return outputs, losses
-
-        else:
-            raw_volume = self._get_dispvolume_from_img('s', aug='')
-            if isinstance(raw_volume, tuple):
-                raw_volume = self._process_net_outputs(raw_volume, outputs, {},
-                                                       's')
-            if self.distill_offset:
-                d_volume = outputs['fine_volume'].unsqueeze(1)
-            else:
-                d_volume = raw_volume.unsqueeze(1)
-
-            p_volume = self._get_probvolume_from_dispvolume(d_volume)
-            pred_disp = self._get_disp_from_probvolume(p_volume)
-            if 'disp_k' in self.inputs:
-                pred_depth = self._trans_depth_and_disp(pred_disp)
-            else:
-                pred_depth = 401.55 / pred_disp
-            
-
-            outputs[('depth', 's')] = pred_depth
-
-
-            return outputs
-
-    def _get_dispvolume_from_img(self, side, aug='_aug'):
-        # pass image to the encoder
-        input_img = self.inputs['color_{}{}'.format(side, aug)].clone()
-        x = input_img / 0.225
+    
+    def forward(self, x, outputs, **kargs):
         features = self.net_modules['enc'](x)
-        if not (not self.training and self.distill_offset):
-            out_volume = self.net_modules['dec'](features, input_img.shape)
+        if self.is_train or not self.distill_offset:
+            out_volume = self.net_modules['dec'](features, x.shape)
             if isinstance(out_volume, torch.Tensor):
                 out_volume = [out_volume]
         else:
             out_volume = (None, {}, {})
-       
-        # pass for step2
+        
         # at the training stage, flip and pass the
         # features to decoder in the second step
         if self.distill_offset:
-            if aug == '_aug' and self.do_flip_distill:
+            if self.is_train and self.do_flip_distill:
                 new_features = []
                 for idx_f in range(len(features)):
                     new_features.append(
                         torch.flip(features[idx_f].clone(), dims=[3]))
                 out_volume_raw = self.net_modules['dec'](new_features,
-                                                         input_img.shape,
+                                                         x.shape,
                                                          switch=True)
                 
                 for k, v in out_volume_raw[1].items():
@@ -293,20 +160,141 @@ class SDFA_Net(Base_of_Network):
                         out_volume[1][k] = v
                 out_volume_raw = out_volume_raw[0]
                 out_volume_raw = torch.flip(out_volume_raw, dims=[3])
-
             else:
                 out_volume_raw = self.net_modules['dec'](features,
-                                                         input_img.shape,
+                                                         x.shape,
                                                          switch=True)
                 for k, v in out_volume_raw[1].items():
                     if k not in out_volume[1]:
                         out_volume[1][k] = v
                 out_volume_raw = out_volume_raw[0]
-
         else:
             out_volume_raw = None
+        raw_volume = (*out_volume, out_volume_raw)
+        
+        if ('SDFA' in self.decoder or 'OA' in self.decoder):
+            for k, v in raw_volume[1].items():
+                outputs['delta_{}_{}_{}'.format(k[0], k[1], 's')] = v
+                outputs['value-delta_{}_{}_{}'.format(
+                    k[0], k[1], 's')] = torch.abs(v.detach()).mean()
+        if self.distill_offset:
+            outputs['fine_volume'] = raw_volume[-1]
+        raw_volume = raw_volume[0]
+        
+        if self.distill_offset:
+            d_volume = outputs['fine_volume'].unsqueeze(1)
+        else:
+            d_volume = raw_volume.unsqueeze(1)
 
-        return (*out_volume, out_volume_raw)
+        p_volume = self._get_probvolume_from_dispvolume(d_volume)
+        pred_disp = self._get_disp_from_probvolume(p_volume)
+        pred_depth = 401.55 / pred_disp
+
+        if self.is_train:
+            outputs['raw_volume'] = raw_volume
+
+        pred = pred_depth
+        outputs[('depth', 's')] = pred_depth
+
+        return pred, outputs
+
+
+    def _preprocess_inputs(self):
+        if self.is_train:
+            aug = '_aug'
+        else:
+            aug = ''
+        x = self.inputs['color_s{}'.format(aug)] / 0.225
+        return x
+
+    def _postprocess_outputs(self, outputs):
+        loss_sides = ['s']
+
+        directs = self.inputs['direct']
+        directs = directs.unsqueeze(1).unsqueeze(1).unsqueeze(1)
+
+        outputs['color_s_norm'] = self.image_base + self.inputs['color_s']
+        outputs['color_o_norm'] = self.image_base + self.inputs['color_o']
+        for train_side in self.train_sides:
+            # oside is used to select the disparity transformer
+            oside = 'o' if train_side == 's' else 's'
+
+            d_volume = outputs['raw_volume'].unsqueeze(1)
+
+            p_volume = self._get_probvolume_from_dispvolume(d_volume)
+            pred_disp = self._get_disp_from_probvolume(p_volume, directs)
+            w_d_volume = self.transformer[oside]\
+                .get_warped_volume(d_volume, directs)
+            w_p_volume = self._get_probvolume_from_dispvolume(w_d_volume)
+            
+            # biuld the outputs
+            outputs['disp_{}'.format(train_side)] = pred_disp
+            outputs['tar_disp_{}'.format(train_side)] = pred_disp.detach()
+            outputs['depth_{}'.format(train_side)] =\
+                self._trans_depth_and_disp(pred_disp)
+
+            t_img_aug = self.inputs['color_{}_aug'.format(train_side)]
+
+            # generate the synthetic image in other side
+            # named side but its synthesized the image of other side
+            w_img = self.transformer[oside]\
+                .get_warped_frame(t_img_aug, directs)
+            synth_img = (w_p_volume * w_img).sum(dim=2)
+            outputs['synth_img_{}'.format(train_side)] = synth_img
+            
+            if self.distill_offset:
+                d_volume_fine = outputs['fine_volume'].unsqueeze(1)
+                p_volume_fine = self._get_probvolume_from_dispvolume(
+                    d_volume_fine)
+                pred_disp_fine = self._get_disp_from_probvolume(
+                    p_volume_fine, directs)
+                pred_depth_fine = self._trans_depth_and_disp(
+                    pred_disp_fine)
+
+                side_flag = 1 if train_side == 's' else -1
+                outputs['fine_disp_{}'.format(train_side)] = pred_disp_fine
+                outputs['fine_depth_{}'.format(
+                    train_side)] = pred_depth_fine
+                outputs['tar_depth_{}'.format(
+                    train_side)] = self._trans_depth_and_disp(outputs[
+                        'tar_disp_{}'.format(train_side)].detach())
+
+                source_image = outputs['color_{}_norm'.format(oside)]
+                warp_img_fine, blend_mask = self.transformer[
+                    train_side].get_warp_with_disp(
+                        -pred_disp_fine, source_image,
+                        side_flag * directs)
+                warp_img, _ = self.transformer[
+                    train_side].get_warp_with_disp(
+                        -pred_disp.detach(), source_image,
+                        side_flag * directs)
+
+                occ_mask = self.mask_builder[0](
+                    pred_disp_fine, -side_flag * self.inputs['direct'])
+                outputs['warp_img_fine_{}'.format(
+                    train_side)] = warp_img_fine
+                outputs['warp_img_{}'.format(train_side)] = warp_img
+                outputs['occ_fine_{}'.format(train_side)] = (
+                    (occ_mask > 0.5) * blend_mask).to(torch.float)
+
+        # extract features by vgg
+        for train_side in self.train_sides:
+            oside = 'o' if train_side == 's' else 's'
+            raw_img = self.inputs['color_{}_aug'.format(oside)]
+            synth_img = outputs['synth_img_{}'.format(train_side)]
+
+            with torch.no_grad():
+                raw_feats = self.feat_net.get_feats(raw_img)
+            synth_feats = self.feat_net.get_feats(synth_img)
+
+            for feat_idx in range(3):
+                rawf_name = 'raw_feats_{}_{}'.format(feat_idx, train_side)
+                outputs[rawf_name] = raw_feats[feat_idx]
+                synthf_name = 'synth_feats_{}_{}'.format(
+                    feat_idx, train_side)
+                outputs[synthf_name] = synth_feats[feat_idx]
+        
+        return loss_sides, outputs
 
     def _get_probvolume_from_dispvolume(self, volume):
         return F.softmax(volume, dim=2)
@@ -322,55 +310,48 @@ class SDFA_Net(Base_of_Network):
         out_d = torch.abs(k) / in_d
         return out_d
 
-    def _process_net_outputs(self, raw_volume, outputs, losses, train_side):
-        if ('SDFA' in self.decoder
-                or 'OA' in self.decoder):
-            for k, v in raw_volume[1].items():
-                outputs['delta_{}_{}_{}'.format(k[0], k[1], train_side)] = v
-                losses['value-delta_{}_{}_{}'.format(
-                    k[0], k[1], train_side)] = torch.abs(v.detach()).mean()
-
-        if self.distill_offset:
-            outputs['fine_volume'] = raw_volume[-1]
-
-        raw_volume = raw_volume[0]
-        return raw_volume
-
-    def _compute_losses(self, outputs, train_side, losses, add_loss=True):
+    def _compute_losses(self, sides, outputs, losses, add_loss=True):
         loss_inputs = {}
         for out_key, out_vlaue in outputs.items():
             loss_inputs[out_key] = out_vlaue
         for in_key, in_vlaue in self.inputs.items():
             loss_inputs[in_key] = in_vlaue
+        
+        loss_terms = self.loss_computer[self.now_group_name]
+        losses[self.now_group_name + '-loss'] = 0
+        for train_side in sides:
+            for loss_name, (used_loss, loss_rate, loss_mask) in\
+                loss_terms.items():
+                loss = used_loss(loss_inputs, train_side)
+                if isinstance(loss, tuple):
+                    idx_mask = loss[1]
+                    losses['choice_mask/{}'.format(train_side)] = idx_mask.to(
+                        torch.float) / 2
+                    total_num = (idx_mask >= 0).sum()
+                    losses['{}/self-value'.format(
+                        train_side)] = (idx_mask == 0).sum() / total_num
+                    losses['{}/pred-value'.format(
+                        train_side)] = (idx_mask == 1).sum() / total_num
+                    losses['{}/hints-value'.format(
+                        train_side)] = (idx_mask == 2).sum() / total_num
+                    loss = loss[0]
+                if loss_mask is not None:
+                    mask = loss_inputs[loss_mask.format(train_side)]
+                    mask = mask.to(torch.float)
+                    loss = loss * mask
+                    record_mean = loss.sum().detach() / mask.sum()
+                else:
+                    record_mean = loss.mean().detach()
 
-        for used_loss in self.loss_options['types']:
-            loss_name = used_loss['name']
-            loss_rate = used_loss['rate']
-            loss = self.loss_computer[loss_name](loss_inputs, train_side)
-            if isinstance(loss, tuple):
-                idx_mask = loss[1]
-                losses['choice_mask/{}'.format(train_side)] = idx_mask.to(
-                    torch.float) / 2
-                total_num = (idx_mask >= 0).sum()
-                losses['{}/self-value'.format(
-                    train_side)] = (idx_mask == 0).sum() / total_num
-                losses['{}/pred-value'.format(
-                    train_side)] = (idx_mask == 1).sum() / total_num
-                losses['{}/hints-value'.format(
-                    train_side)] = (idx_mask == 2).sum() / total_num
-                loss = loss[0]
-            if 'mask' in used_loss:
-                mask = loss_inputs[used_loss['mask'].format(train_side)]
-                mask = mask.to(torch.float)
-                loss = loss * mask
+                loss_value = loss_rate * loss.mean()
+                if add_loss:
+                    losses[self.now_group_name + '-loss'] += loss_value
+                    losses['loss'] += loss_value.detach()
 
-            loss_value = loss_rate * loss.mean()
-            if add_loss:
-                losses['loss'] += loss_value
-
-            losses['{}/{}'.format(loss_name, train_side)] = loss
-            losses['{}/{}-value'.format(train_side, loss_name)] = loss_value
-
+                losses['{}/{}'.format(loss_name, train_side)] = loss
+                losses['{}/{}-value'.format(train_side, loss_name)] = record_mean
+        
+        return losses
 
 class DispTransformer(object):
     def __init__(self, image_size, disp_range, device='cuda'):

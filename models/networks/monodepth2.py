@@ -8,7 +8,7 @@ from models.backbones.hrnet_enc import hrnet18
 from models.backbones.resnet import ResNet_Backbone
 from models.backbones.packnet_enc import PackEncoder
 from models.backbones.swin import get_orgwintrans_backbone
-from models.base_net import Base_of_Network
+from models.base_model import Base_of_Model
 from models.decoders.cma_decoder import CMA
 from models.decoders.diff_decoder import DIFFNetDecoder
 from models.decoders.hrdepth_dec import HRDepthDecoder
@@ -19,7 +19,7 @@ from utils import platform_manager
 
 
 @platform_manager.MODELS.add_module
-class Monodepth2(Base_of_Network):
+class Monodepth2(Base_of_Model):
     def _initialize_model(
             self,
             encoder_layer=18,
@@ -96,22 +96,24 @@ class Monodepth2(Base_of_Network):
             temp_scale = [length // 2**scale for length in image_size]
         self.projector[scale] = DepthProjector(temp_scale).to(self.device)
 
-    def forward(self, inputs, is_train=True):
-        self.inputs = inputs
-        outputs = {}
-        if is_train:
-            losses = {}
-            losses['loss'] = 0
-            train_side = 's'
-            if self.use_diffarc or self.use_packnet:
-                x = inputs['color_{}_aug'.format(train_side)]
-            else:
-                x = (inputs['color_{}_aug'.format(train_side)] - 0.45) / 0.225
-            features = self.net_module['encoder'](x)
-            disp_outputs = self.net_module['decoder'](features, x.shape)
+    def forward(self, x, outputs, **kargs):
+        features = self.net_module['encoder'](x)
+        disp_outputs = self.net_module['decoder'](features, x.shape)
 
-            K = self.inputs['K']
-            inv_K = self.inputs['inv_K']
+        if self.use_packnet:
+            disp = disp_outputs[0]
+            pred_depth = 1 / disp
+        else:
+            disp = torch.sigmoid(disp_outputs[0])
+            _, pred_depth = self._disp2depth(disp)
+        if not self.mono_train:
+            pred_depth = pred_depth * 5.4
+        if self.set_SCALE is not None:
+            pred_depth = pred_depth * self.set_SCALE
+        outputs[('depth', 's')] = pred_depth
+        pred = pred_depth
+
+        if self.is_train:
             if self.mono_train:
                 outputs.update(self._get_poses())
             for scale in range(4):
@@ -119,72 +121,68 @@ class Monodepth2(Base_of_Network):
                     disp = disp_outputs[scale]
                 else:
                     disp = torch.sigmoid(disp_outputs[scale])
-                outputs['disp_raw_{}_{}'.format(scale, train_side)] = disp
-                disp = F.interpolate(disp,
-                                     self.image_size,
-                                     mode='bilinear',
-                                     align_corners=False)
-                outputs['disp_{}_{}'.format(scale, train_side)] = disp
-                _, depth = self._disp2depth(disp)
-                if self.use_depthhints:
-                    outputs['depth_{}_{}'.format(scale, train_side)] = depth * 5.4
-                for id_frame in self.data_mode:
-                    source_img = self.inputs[('color_{}'.format(id_frame))]
-                    if id_frame != 'o':
-                        T = outputs['T_{}'.format(id_frame)]
-                    else:
-                        T = inputs['T'].clone()
-                        T[:, 0, 3] = T[:, 0, 3] / 5.4
-                    projected_img, _ = self.projector[0](depth, inv_K, T, K,
-                                                         source_img, False)
-                    outputs['proj_img_{}_{}_{}'.format(
-                        id_frame, scale, train_side)] = projected_img
+                outputs['disp_raw_{}_s'.format(scale)] = disp
+            if self.use_fsredec:
+                outputs['pred_seg_s'] = disp_outputs[('seg_logits', 0)]
+                outputs['seg_out_s'] \
+                    = torch.argmax(disp_outputs[('seg_logits', 0)],
+                                   dim=1,
+                                   keepdim=True)
+                for i in range(1, 4):
+                    outputs['feature_{}_s'.format(i)] \
+                        = disp_outputs['d_feature_{}'.format(i)]
+    
+        return pred, outputs
+    
+    def _preprocess_inputs(self):
+        if self.is_train:
+            aug = '_aug'
+        else:
+            aug = ''
+
+        if self.use_diffarc or self.use_packnet:
+            x = self.inputs['color_s{}'.format(aug)]
+        else:
+            x = (self.inputs['color_s{}'.format(aug)] - 0.45) / 0.225
+
+        return x
+    
+    def _postprocess_outputs(self, outputs):
+        K = self.inputs['K']
+        inv_K = self.inputs['inv_K']
+        loss_sides = ['s']
+        
+        for scale in range(4):
+            disp = outputs['disp_raw_{}_s'.format(scale)]
+            disp = F.interpolate(disp,
+                                    self.image_size,
+                                    mode='bilinear',
+                                    align_corners=False)
+            outputs['disp_{}_s'.format(scale)] = disp
+            _, depth = self._disp2depth(disp)
             if self.use_depthhints:
-                source_img = self.inputs['color_o']
-                depth = inputs['hints_{}'.format(train_side)]
-                T = inputs['T'].clone()
+                outputs['depth_{}_{}'.format(scale, 's')] = depth * 5.4
+            for id_frame in self.data_mode:
+                source_img = self.inputs[('color_{}'.format(id_frame))]
+                if id_frame != 'o':
+                    T = outputs['T_{}'.format(id_frame)]
+                else:
+                    T = self.inputs['T'].clone()
+                    T[:, 0, 3] = T[:, 0, 3] / 5.4
                 projected_img, _ = self.projector[0](depth, inv_K, T, K,
                                                      source_img, False)
-                outputs['proj_img_hints_{}'.format(
-                        train_side)] = projected_img
-            if self.use_fsredec:
-                outputs['pred_seg_{}'.format(train_side)] \
-                    = disp_outputs[('seg_logits', 0)]
-                outputs['seg_out_{}'.format(train_side)] \
-                    = torch.argmax(disp_outputs[('seg_logits', 0)], dim=1, keepdim=True)
-                for i in range(1, 4):
-                    outputs['feature_{}_{}'.format(i, train_side)] \
-                        = disp_outputs['d_feature_{}'.format(i)]
-            self._compute_losses(outputs, train_side, losses)
-            return outputs, losses
-
-        else:
-            if self.use_diffarc or self.use_packnet:
-                x = inputs['color_s']
-            else:
-                x = (inputs['color_s'] - 0.45) / 0.225
-            features = self.net_module['encoder'](x)
-            disp_outputs = self.net_module['decoder'](features, x.shape)
-            if self.use_packnet:
-                disp = disp_outputs[0]
-                pred_depth = 1 / disp
-            else:
-                disp = torch.sigmoid(disp_outputs[0])
-                _, pred_depth = self._disp2depth(disp)
-            if not self.mono_train:
-                pred_depth = pred_depth * 5.4
-            if self.set_SCALE is not None:
-                pred_depth = pred_depth * self.set_SCALE
-            outputs[('depth', 's')] = pred_depth
-            # for scale in range(4):
-            #     disp = torch.sigmoid(disp_outputs[scale])
-            #     disp = F.interpolate(disp,
-            #                          self.image_size,
-            #                          mode='bilinear',
-            #                          align_corners=False)
-            #     outputs['disp_{}_{}'.format(scale, 's')] = disp
-
-            return outputs
+                outputs['proj_img_{}_{}_s'.format(
+                    id_frame, scale)] = projected_img
+        if self.use_depthhints:
+            source_img = self.inputs['color_o']
+            depth = self.inputs['hints_s']
+            T = self.inputs['T'].clone()
+            projected_img, _ = self.projector[0](depth, inv_K, T, K,
+                                                    source_img, False)
+        
+            outputs['proj_img_hints_s'.format()] = projected_img
+        
+        return loss_sides, outputs
 
     def _get_poses(self):
         outputs = {}

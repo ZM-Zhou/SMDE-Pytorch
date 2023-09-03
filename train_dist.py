@@ -153,10 +153,7 @@ def reduce_loss(tensor, rank, world_size):
     with torch.no_grad():
         dist.reduce(tensor, dst=0)
         if rank == 0:
-            tensor /= world_size**2
-            return tensor
-        else:
-            return 0
+            tensor /= world_size
 
 
 class Trainer(object):
@@ -337,7 +334,6 @@ class Trainer(object):
             for optimizer_item in self.optimizer:
                 optimizer_item.zero_grad()
             if self.world_size != 1:
-                losses['loss'] = losses['loss'] * self.world_size
                 reduce_loss(losses['loss'], opts.local_rank, self.world_size)
                 show_loss = losses['loss']
             else:

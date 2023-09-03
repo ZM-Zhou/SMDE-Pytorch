@@ -124,17 +124,49 @@ class Logger(object):
         for line in loss_info:
             self._meta_print(line)
         self._meta_print('# Model Initialization Done!')
+    
+    @_parallel_mask
+    def log_for_flops_etc(self,
+                          in_shape,
+                          used_mode,
+                          flops,
+                          p_nums,
+                          gpu_name,
+                          total_mean_time,
+                          inferece_time,
+                          total_compute_iter,
+                          max_iter_num):
+        self._meta_print('#' + '-' * 79)
+        self._meta_print('# FlOPs and Inference fps')
+        self._meta_print('  Input size: {}, and {} out mode'.format(in_shape,
+                                                                    used_mode))
+        self._meta_print('   -FLOPs: {:.3f}G'.format(flops / 1e9))
+        self._meta_print('   -Params: {:.3f}M'.format(p_nums / 1e6))
+        
+        self._meta_print('   -on ' + gpu_name + ':')
+        total_num = min(total_compute_iter, max_iter_num)
+        total_fps = 1 / total_mean_time
+        last_fps = 1 / inferece_time
+        self._meta_print(
+            '      {:.3f} / fps in total {} images'.format(total_fps,
+                                                           total_num))
+        self._meta_print(
+            '      {:.3f} / fps in last(stable) 100 images'.format(last_fps))
+
 
     @_parallel_mask
-    def log_for_start_training(self, optimizers):
+    def log_for_start_training(self, optimizers, epoch):
         self._train_print('#' + '-' * 79)
         self._train_print('# Training Start!')
-        for idx_optim, optimizer in enumerate(optimizers):
+        for group_name, (optimizer, _, st_epoch) in optimizers.items():
             params_groups = optimizer.param_groups
             for param_idx, param in enumerate(params_groups):
                 self._train_print(
-                    'for optimizer {} params group {}: lr {:.7f}'.format(
-                        idx_optim, param_idx, param['lr']))
+                    'optimizer of {}, sub-group {}: lr {:.7f}{}'.format(
+                        group_name, 
+                        param_idx, 
+                        param['lr'],
+                        ' but disabled' if epoch < st_epoch else ''))
 
     @_parallel_mask
     def log_for_batch(self,
@@ -162,8 +194,8 @@ class Logger(object):
         self._train_print('#' + '-' * 79)
         self._train_print('# Testing Start!')
 
-    def log_for_test(self, metric_outputs, is_best):
-        self._train_print('# Testing Result:')
+    def log_for_test(self, metric_outputs, is_best, name=None):
+        self._train_print('# Testing Result of {}:'.format(name))
         if is_best:
             self._train_print('    -Best Now!:')
         self._train_print(metric_outputs[0] + '\n' + metric_outputs[1])

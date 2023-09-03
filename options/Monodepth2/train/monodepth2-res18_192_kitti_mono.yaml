@@ -2,6 +2,75 @@ train_dataset:
   params:
     is_fixK: v2
 
+losses:
+  param_group:
+    _optim: options/_base/optimizers/adam09.yaml
+    loss_terms:
+      photo_auto_min-0:
+        type: MD2_PhotoLoss
+        rate: 1
+        args:
+          preds_n: ['proj_img_-1_0_{}',
+                    'proj_img_1_0_{}']
+          idents_n: [color_-1,
+                    color_1]
+          target_n: color_{}
+      photo_auto_min-1:
+        type: MD2_PhotoLoss
+        rate: 1
+        args:
+          preds_n: ['proj_img_-1_1_{}',
+                    'proj_img_1_1_{}']
+          idents_n: [color_-1,
+                    color_1]
+          target_n: color_{}
+      photo_auto_min-2:
+        type: MD2_PhotoLoss
+        rate: 1
+        args:
+          preds_n: ['proj_img_-1_2_{}',
+                    'proj_img_1_2_{}']
+          idents_n: [color_-1,
+                    color_1]
+          target_n: color_{}
+      photo_auto_min-3:
+        type: MD2_PhotoLoss
+        rate: 1
+        args:
+          preds_n: ['proj_img_-1_3_{}',
+                    'proj_img_1_3_{}']
+          idents_n: [color_-1,
+                    color_1]
+          target_n: color_{}
+      smooth-0:
+        type: SmoothLoss
+        rate: 0.001
+        args:
+          pred_n: disp_0_{}
+          image_n: color_{}
+          relative_smo: True
+      smooth-1:
+        type: SmoothLoss
+        rate: 0.0005
+        args:
+          pred_n: disp_raw_1_{}
+          image_n: color_{}_1
+          relative_smo: True
+      smooth-2:
+        type: SmoothLoss
+        rate: 0.00025
+        args:
+          pred_n: disp_raw_2_{}
+          image_n: color_{}_2
+          relative_smo: True
+      smooth-3:
+        type: SmoothLoss
+        rate: 0.000125
+        args:
+          pred_n: disp_raw_3_{}
+          image_n: color_{}_3
+          relative_smo: True
+
 visual:
   type:
     color_s: img
