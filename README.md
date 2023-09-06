@@ -39,7 +39,7 @@ conda activate pytorch170cu11
 |[R-MSFM](options/R-MSFM) | 2021 ICCV| ✔| ✔| [Link](https://openaccess.thecvf.com/content/ICCV2021/papers/Zhou_R-MSFM_Recurrent_Multi-Scale_Feature_Modulation_for_Monocular_Depth_Estimating_ICCV_2021_paper.pdf)| [Link](https://github.com/jsczzzk/R-MSFM)|
 |[OCFD-Net](options/OCFD-Net) (Ours)| 2022 ACM-MM'| ✔| ✔| [Link](https://arxiv.org/abs/2203.10925) | [Link](https://github.com/ZM-Zhou/OCFD-Net_pytorch)|
 |[SDFA-Net](options/SDFA-Net) (Ours)| 2022 ECCV| ✔| ✔| [Link](https://arxiv.org/abs/2209.07088) | [Link](https://github.com/ZM-Zhou/SDFA-Net_pytorch)|
-|[TiO-Depth](options/TiO-Depth) (Ours)| 2023 ICCV| ✔| ✔| [Link]() | [Link](https://github.com/ZM-Zhou/TiO-Depth_pytorch)|
+|[TiO-Depth](options/TiO-Depth) (Ours)| 2023 ICCV| ✔| ✔| [Link](https://arxiv.org/abs/2309.00933) | [Link](https://github.com/ZM-Zhou/TiO-Depth_pytorch)|
 
 * `Test` : You could predict depths with their pretrained models provided by their official implementations. We have tested their performances and more details are given on their pages (click their names in the table).
 * `Train`: We have trained the method with this repository and the trained model achieves competitive or better performances compared to the official version.
@@ -65,7 +65,7 @@ We give the performances of the methods on **the KITTI raw test set** (an outdoo
 |OCFD-Net|Res50+384x1280|Stereo|[Trained](https://pan.baidu.com/s/1Dep8U4mFnk6czcVqq_qZkA)|0.091|0.576|4.036|0.174|0.901|
 |EPCDepth|Res50+320x1024|Stereo|[Trained](https://pan.baidu.com/s/1-Q8N1hPPjKz3BZXbPv_opw)|0.090|0.682|4.282|0.178|0.903|
 |SDFA-Net|SwinT*+384x1280|Stereo|[Trained](https://pan.baidu.com/s/1OqnackbFrNYomp_TFYkM5g)|0.089|0.537|3.895|0.169|0.906|
-|TiO-Depth|SwinT*+384x1280|Stereo||[Baidu](https://pan.baidu.com/s/1rNZvLDcTSGq5XOBFHZRTjg)|0.085|0.544|3.919|0.169|0.911|
+|TiO-Depth|SwinT*+384x1280|Stereo|[Trained](https://pan.baidu.com/s/1rNZvLDcTSGq5XOBFHZRTjg)|0.085|0.544|3.919|0.169|0.911|
 
 The methods on **the NYU v2 test set** (an indoor dataset).
 |Method|Info.|Sup|Trained|Abs Rel.|RMSE|log10|A1|
