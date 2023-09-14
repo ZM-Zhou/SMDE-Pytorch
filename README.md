@@ -116,6 +116,7 @@ Before evaluating or training the methods, you should download the used datasets
 |NYU v2||✔ (2GB)|
 |Mak3D||✔ (200MB)|
 |Cityscapes|✔ (130GB)|✔ (35GB)|
+|KITTI Stereo 2015||✔ (2GB)|
 
 ##### Set data path
 We give an example `path_example.py` for setting the path in the repository.
@@ -186,6 +187,27 @@ the folder for each dataset should be organized like:
 |   |---001_depth.npy
 |   |--- ...
 ```
+```
+<root of kitti 2015>
+|---training
+|   |---image_2
+|   |   |---000000_10.png
+|   |   |---000000_11.png
+|   |   |---000001_10.png
+|   |   |---...
+|   |---image_3
+|   |   |---000000_10.png
+|   |   |---000000_11.png
+|   |   |---000001_10.png
+|   |   |---...
+|   |---disp_occ_0
+|   |   |---000000_10.png
+|   |   |---000000_11.png
+|   |   |---000001_10.png
+|   '''
+|---testing
+|   |--- ...
+```
 ##### KITTI
 For training the methods on the KITTI dataset (the Eigen split), you should download the entire KITTI dataset (about 175GB) by:
 ```
@@ -231,6 +253,11 @@ Then, please generate the camera parameter matrices by:
 python datasets/utils/export_cityscapes_matrix.py
 ```
 You also need to download the prepared ground-truth depth [Here](https://storage.googleapis.com/niantic-lon-static/research/manydepth/gt_depths_cityscapes.zip) which is provided by Watson in ManyDepth.
+
+##### KITTI Stereo 2015
+For evaluating the model on the KITTI Stereo 2015 training set as many stereo matching methods, you should download the corresponding dataset [Here](https://www.cvlibs.net/datasets/kitti/eval_scene_flow.php?benchmark=stereo) and unzip it.
+It is noted that the training of the model requires the entire KITTI dataset.
+
 ### Evaluate the methods
 To evaluate the methods on the prepared dataset, you could simply use 
 ```

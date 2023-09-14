@@ -164,7 +164,9 @@ class TiO_Depth(Base_of_Model):
                                                  t_side)
             pred = outputs['mono_depth_0_{}'.format(t_side)]
             outputs['rawdepth'] = pred
-            outputs['rawdisp'] = outputs['mono_disp_0_{}'.format(t_side)]
+            pred_disp = outputs['mono_disp_0_{}'.format(t_side)]
+            outputs['rawdisp'] = pred_disp
+            
         elif used_path == 'Stereo':
             # TODO check no grad
             with torch.no_grad():
@@ -192,7 +194,8 @@ class TiO_Depth(Base_of_Model):
                                                    directs)
             pred = outputs['stereo_depth_0_s']
             outputs['sdepth'] = pred
-            outputs['sdisp'] = outputs['stereo_disp_0_s']
+            pred_disp = outputs['stereo_disp_0_s']
+            outputs['sdisp'] = pred_disp
 
         elif used_path == 'Refine':
             t_side = 's'
@@ -209,9 +212,11 @@ class TiO_Depth(Base_of_Model):
                                                  name='ref')
             pred = outputs['refmono_depth_0_{}'.format(t_side)]
             outputs['refdepth'] = pred
-            outputs['refdisp'] = outputs['refmono_disp_0_{}'.format(t_side)]
+            pred_disp = outputs['refmono_disp_0_{}'.format(t_side)]
+            outputs['refdisp'] = pred_disp
         
         outputs[('depth', 's')] = pred
+        outputs['disp', 's'] = pred_disp
         return pred, outputs
 
     def _preprocess_inputs(self):

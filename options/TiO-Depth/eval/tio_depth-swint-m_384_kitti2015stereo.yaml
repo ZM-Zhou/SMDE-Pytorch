@@ -5,7 +5,7 @@ test_dataset:
 
 model:
   params:
-    out_mode: ['Refine']
+    out_mode: ['Stereo']
 
 _test: options/_base/datasets/kitti_stereo2015/train_192.yaml
 _base: options/TiO-Depth/train/tio_depth-swint-m_384crop256_kittifull_stereo.yaml
