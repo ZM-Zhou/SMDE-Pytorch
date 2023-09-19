@@ -1,0 +1,204 @@
+train_dataset:
+  params:
+    split_file: data_splits/kitti/train_all_left_list.txt
+    full_size: [384, 1280]
+    patch_size: [256, 832]
+    random_resize: [1.5]
+    flip_mode: img
+    is_fixK: v2
+
+val_dataset:
+  params:
+    full_size: [384, 1280]
+    stereo_test: True
+
+model:
+  type: TiO_Depth
+  params:
+    out_mode: ['Mono', 'Stereo', 'Refine']
+
+losses:
+  param_group1:
+    st_epoch: 1
+    _optim: options/_base/optimizers/adam.yaml
+    optim:
+      sched:
+        params:
+          milestones: [20, 30, 40, 45]
+    loss_terms:
+      Mono_photo_discrete:
+        type: PhotoLoss
+        rate: 1
+        args:
+          pred_n: mono_disproj_img_s_0_o
+          target_n: color_s_aug
+          l1_rate: 1
+          other_side: True
+      Mono_perceptual-1:
+        type: PhotoLoss
+        rate: 0.01
+        args:
+          pred_n: mono_synth_feats_s_0_o
+          target_n: mono_raw_feats_s_0_o
+          l1_rate: 0
+          l2_rate: 1
+      Mono_perceptual-2:
+        type: PhotoLoss
+        rate: 0.01
+        args:
+          pred_n: mono_synth_feats_s_1_o
+          target_n: mono_raw_feats_s_1_o
+          l1_rate: 0
+          l2_rate: 1
+      Mono_perceptual-3:
+        type: PhotoLoss
+        rate: 0.01
+        args:
+          pred_n: mono_synth_feats_s_2_o
+          target_n: mono_raw_feats_s_2_o
+          l1_rate: 0
+          l2_rate: 1
+      Mono_smooth:
+        type: SmoothLoss
+        rate: 0.0008
+        name: 
+        args:
+          pred_n: mono_disp_0_o
+          image_n: color_o
+          gamma_rate: 2
+          more_kernel: True
+          gray_img: True
+  
+  param_group2:
+    st_epoch: 21
+    _optim: options/_base/optimizers/adam.yaml
+    optim:
+      sched:
+        params:
+          milestones: [30, 40, 45]
+    loss_terms:
+      Stereo_photo: 
+        type: PhotoLoss
+        rate: 1
+        args:
+          pred_n: stereo_proj_img_o_0_s
+          target_n: fused_occ_color_s
+          l1_rate: 0.15
+          ssim_rate: 0.85
+          other_side: True
+
+      Stereo_smooth:
+        type: SmoothLoss
+        rate: 0.008
+        args:
+          pred_n: stereo_disp_0_s
+          image_n: color_s
+          gamma_rate: 2
+          more_kernel: True
+          gray_img: True
+      
+      Stereo_cost3:
+        type: CostLoss
+        rate: 0.01
+        args:
+          pred_n: cost_3-s
+          targets_n: ['mono_pvolume_cost_3_s']
+          smol1_rate: 0
+          l1_rate: 1
+          t_l1: 1
+          total_tl1: True
+      
+      Stereo_cost2:
+        type: CostLoss
+        rate: 0.01
+        args:
+          pred_n: cost_2-s
+          targets_n: ['mono_pvolume_cost_2_s']
+          smol1_rate: 0
+          l1_rate: 1
+          t_l1: 1
+          total_tl1: True
+      
+      Stereo_cost1:
+        type: CostLoss
+        rate: 0.01
+        args:
+          pred_n: cost_1-s
+          targets_n: ['mono_pvolume_cost_1_s']
+          smol1_rate: 0
+          l1_rate: 1
+          t_l1: 1
+          total_tl1: True
+      
+      Stereo_gui1:
+        type: GradLoss
+        rate: 0.01
+        args:
+          pred_n: stereo_disp_0_s
+          target_n: mono_disp_0_s
+        
+      Stereo_gui2:
+        type: PhotoLoss
+        rate: 0.01
+        mask: inv_edge_mask_s
+        args:
+          pred_n: stereo_disp_0_s
+          target_n: mono_disp_0_s
+          l1_rate: 1
+          ssim_rate: 0
+  
+  param_group3:
+    st_epoch: 31
+    _optim: options/_base/optimizers/adam.yaml
+    optim:
+      sched:
+        params:
+          milestones: [40, 45]
+    loss_terms:
+      Refine_hints:
+        type: CostLoss
+        rate: 1
+        args:
+          pred_n: refmono_pvolume_wg_0_s
+          targets_n: ['fuse_pvolume_s']
+          use_confi: False
+          smol1_rate: 0
+          ce_rate: 1
+
+visual:
+  type:
+    color_s: img
+    color_o: img
+    mono_disp_0_s: disp
+    stereo_disp_0_s: disp
+    
+    fused_occ_color_s: img
+    mono_occ_mask_s: mask
+    plane_mask_s: mask
+
+    fuse_disp_s: disp
+    fuse_proj_img_o_0_s: img
+    refmono_disp_0_s: disp
+    refmono_proj_img_o_0_s: img
+    
+    cost_disp_3-s: disp
+    cost_disp_3-o: disp
+    cost_disp_2-s: disp
+    cost_disp_2-o: disp
+    cost_disp_1-s: disp
+    cost_disp_1-o: disp
+
+    Refine_hints/s: error_heat
+
+  shape: [[color_s, color_o],
+          [mono_disp_0_s, stereo_disp_0_s],
+          [fuse_disp_s, fuse_proj_img_o_0_s],
+          [refmono_disp_0_s, refmono_proj_img_o_0_s],
+          [cost_disp_3-s, cost_disp_3-o],
+          [cost_disp_2-s, cost_disp_2-o],
+          [cost_disp_1-s, cost_disp_1-o],
+          [Refine_hints/s, plane_mask_s]]
+
+_train: options/_base/datasets/kitti/train_192.yaml
+_val: options/_base/datasets/kitti_stereo2015/train_192.yaml
+_base: options/_base/networks/tio_depth.yaml

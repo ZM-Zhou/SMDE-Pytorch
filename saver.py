@@ -4,9 +4,23 @@ import torch
 
 
 def load_model_for_evaluate(pre_model_path, model):
-    pretrained_dict = torch.load(pre_model_path)
-    model._networks.load_state_dict(pretrained_dict['model_params'])
-    return model
+        map_location = torch.device('cpu')
+        load_dict = torch.load(pre_model_path, map_location)
+        pretrained_dict = load_dict['model_params']
+        model_dict = model._networks.state_dict()
+
+        pretrained_dict = {
+            k: v
+            for k, v in pretrained_dict.items() if k in model_dict
+        }
+
+        miss, unexpected = model._networks.load_state_dict(
+            pretrained_dict, False)
+        if miss is not None:
+            print(miss)
+        if unexpected is not None:
+            print(unexpected)
+        return model
 
 
 class ModelSaver(object):
@@ -35,23 +49,23 @@ class ModelSaver(object):
             save_dict = {'model_params': model._networks.state_dict()}
 
         if is_best:
-            save_path = os.path.join(self.log_dir, 'best_model.pth')
+            save_path = os.path.join(self.log_dir, 'best_model{}.pth'.format(
+                '' if name == '' else '-{}'.format(name)
+            ))
             torch.save(save_dict, save_path)
 
         save_dict['epoch'] = epoch
         save_dict['step'] = step
-        for idx_optim in range(len(optimizers)):
-            optimizer = optimizers[idx_optim]
-            save_dict[('optim_params', idx_optim)] = optimizer.state_dict()
-        save_path = os.path.join(self.log_dir, 'last_model{}.pth'.format(name))
+        for group_name, (optimizer, _, _) in optimizers.items():
+            save_dict[('optim_params', group_name)] = optimizer.state_dict()
+        save_path = os.path.join(self.log_dir, 'last_model{}.pth'.format(
+            name if isinstance(name, int) or name == 'nan' else ''))
         torch.save(save_dict, save_path)
         return is_best
 
     def load_model(self,
                    pre_model_path,
-                   model,
-                   optimizer=None,
-                   scheduler=None):
+                   model):
         map_location = torch.device('cpu')
         load_dict = torch.load(pre_model_path, map_location)
         pretrained_dict = load_dict['model_params']
@@ -68,32 +82,28 @@ class ModelSaver(object):
             print(miss)
         if unexpected is not None:
             print(unexpected)
-        if 'epoch' in load_dict:
-            start_epoch = load_dict['epoch'] + 1
-            start_step = load_dict['step']
-        else:
-            start_epoch = 1
-            start_step = 1
-        return model, start_epoch, start_step
+        return model
 
-    def load_optim(self, pre_model_path, optimizers=None, schedulers=None):
+    def load_optim(self, pre_model_path, optimizers=None):
         map_location = torch.device('cpu')
         load_dict = torch.load(pre_model_path, map_location)
 
         start_epoch = load_dict['epoch'] + 1
+        start_step = load_dict['step']
 
-        for idx_optim in range(len(optimizers)):
-            optimizer = optimizers[idx_optim]
-            scheduler = schedulers[idx_optim]
-            optimizer.load_state_dict(load_dict[('optim_params', idx_optim)])
+        for group_name, (optimizer, scheduler, st_epoch) in optimizers.items():
+            # record the set rate of lr between the parameter group and optimizer
+            p_lr_rates = []
             for params in optimizer.param_groups:
-                params['lr'] = params['initial_lr']
+                p_lr_rates.append(params['lr'] / optimizer.defaults['lr'])
+            optimizer.load_state_dict(load_dict[('optim_params', group_name)])
+            for p_idx, params in enumerate(optimizer.param_groups):
+                params['lr'] = optimizer.defaults['lr'] * p_lr_rates[p_idx]
 
             temp_epoch = 1
             while temp_epoch < start_epoch:
                 temp_epoch += 1
                 scheduler.step()
-            optimizers[idx_optim] = optimizer
-            schedulers[idx_optim] = scheduler
+            optimizers[group_name] = (optimizer, scheduler, st_epoch)
 
-        return optimizers, schedulers
+        return optimizers, start_epoch, start_step

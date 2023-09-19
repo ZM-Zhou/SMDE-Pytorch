@@ -30,50 +30,54 @@ def read_yaml_options(path):
             base_dic = read_yaml_options(base_path)
             base_dic['test_dataset'] = base_dic.pop('_dataset')
             opts_dic = _update_dic(opts_dic, base_dic)
+    
+    _check_losses(opts_dic)
 
     return opts_dic
 
 
 def _update_dic(dic, base_dic):
+    '''
+    we assert that all the options value will be replaced if they are not dictionary.
+    '''
     base_dic = base_dic.copy()
-    for key, val in dic.items():
-        if isinstance(val, dict) and key in base_dic:
-            # read a sub-dictionary of options
-            base_dic[key] = _update_dic(val, base_dic[key])
-        elif isinstance(val, list) and key in base_dic:
-            # for read losses
-            for target_item in val:
-                is_exist = False
-                is_losses = True
-                if not isinstance(base_dic[key], list):
-                    is_losses = False
-                else:
-                    # search all the existing losses
-                    for list_idx, list_item in enumerate(base_dic[key]):
-                        if isinstance(list_item, dict):
-                            # update a existing loss term
-                            if list_item['name'] == target_item['name']:
-                                if ('type' in target_item
-                                        and target_item['type'] == None):
-                                    base_dic[key].pop(list_idx)
-                                else:
-                                    base_dic[key][list_idx] =\
-                                        _update_dic(target_item,
-                                                    base_dic[key][list_idx])
-                                is_exist = True
-                        else:
-                            # this flag is used to record the options
-                            # in list format, but not a loss term.
-                            is_losses = False
-                            break
-                    # add a new loss term if the loss is not exist
-                    if isinstance(list_item, dict) and not is_exist:
-                        base_dic[key].append(target_item)
-                if not is_losses:
-                    base_dic[key] = val
-                    break
-
+    for key, value in dic.items():
+        if isinstance(value, dict) and key in base_dic:
+            # for the 'type' is None, remove it from the dictionary,
+            # which should be only appear in the loss terms and datasets
+            if 'type' in value and 'type' == None:
+                base_dic.pop(key)
+            else:
+                base_dic[key] = _update_dic(value, base_dic[key])
         else:
-            base_dic[key] = val
-    dic = base_dic
+            base_dic[key] = value
+        dic = base_dic
     return dic
+
+def _check_losses(dic):
+    if 'loss_terms' not in dic and 'losses' not in dic:
+        return None
+    if 'losses' not in dic:
+        dic['losses'] = {'param_group':{
+                            'st_epoch': 1,
+                            '_optim': 'options/_base/runtime/adam.yaml',
+                            'loss_terms': dic.pop('loss_terms')}}
+
+    for params_name, setting_group in dic['losses'].items():
+        if 'st_epoch' not in setting_group :
+            dic['losses'][params_name]['st_epoch'] = 0
+        if '_optim' not in setting_group:
+            optim_setting = 'options/_base/optimizers/adam.yaml'
+        else:
+            optim_setting = dic['losses'][params_name].pop('_optim')
+ 
+        opts_optim = read_yaml_options(optim_setting)
+        if 'optim' not in dic['losses'][params_name]:
+            dic['losses'][params_name]['optim'] = opts_optim
+        else:
+            dic['losses'][params_name]['optim'] = \
+                _update_dic(dic['losses'][params_name]['optim'], opts_optim)
+
+if __name__ == '__main__':
+    opts = read_yaml_options('options/TiO-Depth/train/tio_depth_kitti.yaml')
+    print(opts)

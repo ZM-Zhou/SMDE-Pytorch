@@ -30,6 +30,72 @@ train_dataset:
       jpg_test: False
       improved_test: False
 
+losses:
+  param_group:
+    loss_terms:
+      photo_l1:
+        type: PhotoLoss
+        rate: 1
+        args:
+          pred_n: synth_img_{}
+          target_n: color_{}_aug
+          l1_rate: 1
+          other_side: True
+      perceptual-1:
+        type: PhotoLoss
+        rate: 0.1
+        args:
+          pred_n: synth_feats_0_{}
+          target_n: raw_feats_0_{}
+          l1_rate: 0
+          l2_rate: 1
+      perceptual-2:
+        type: PhotoLoss
+        rate: 0.1
+        args:
+          pred_n: synth_feats_1_{}
+          target_n: raw_feats_1_{}
+          l1_rate: 0
+          l2_rate: 1
+      perceptual-3:
+        type: PhotoLoss
+        rate: 0.1
+        args:
+          pred_n: synth_feats_2_{}
+          target_n: raw_feats_2_{}
+          l1_rate: 0
+          l2_rate: 1
+      smooth:
+        type: SmoothLoss
+        rate: 0.0008
+        args:
+          pred_n: disp_{}
+          image_n: color_{}
+          gamma_rate: 2
+          more_kernel: True
+          gray_img: True
+
+      proj_ssim:
+        type: PhotoLoss
+        rate: 1
+        mask: mask_{}
+        args:
+          pred_n: proj_img_{}
+          target_n: color_{}
+          l1_rate: 0.15
+          ssim_rate: 0.85
+          other_side: False
+
+      proj-smooth:
+        type: SmoothLoss
+        rate: 0.001
+        mask: smo_mask_{}
+        args:
+          pred_n: fine_disp_{}
+          image_n: color_{}
+          gamma_rate: 1
+          more_kernel: True
+          gray_img: True
 
 visual:
   type:

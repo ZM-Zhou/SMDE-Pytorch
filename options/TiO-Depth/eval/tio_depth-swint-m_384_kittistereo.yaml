@@ -1,0 +1,11 @@
+test_dataset:
+  params:
+    full_size: [384, 1280]
+    stereo_test: True
+
+model:
+  params:
+    out_mode: ['Stereo']
+
+_test: options/_base/datasets/kitti/test_192.yaml
+_base: options/TiO-Depth/train/tio_depth-swint-m_384crop256_kitti_stereo.yaml

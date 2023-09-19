@@ -15,14 +15,22 @@ def make_output_img(imgs, size):
         output_row = []
         for key in columns:
             if isinstance(key, list):
-                base_img = imgs[key[0]]
-                add_img = imgs[key[1]]
-                img = base_img + key[2] * add_img
-                max_value = np.max(img)
-                img = img / max_value * 255
-                output_row.append(img)
+                if key[0] in imgs and key[1] in imgs:
+                    base_img = imgs[key[0]]
+                    add_img = imgs[key[1]]
+                    img = base_img + key[2] * add_img
+                    max_value = np.max(img)
+                    img = img / max_value * 255
+                    output_row.append(img)
+                else:
+                    output_row.append(
+                        np.ones_like(imgs[list(imgs.keys())[0]]) * 123)
             else:
-                output_row.append(imgs[key])
+                if key in imgs:
+                    output_row.append(imgs[key])
+                else:
+                    output_row.append(
+                        np.ones_like(imgs[list(imgs.keys())[0]]) * 123)
         output_row = np.hstack(output_row)
         output_img.append(output_row)
     output_img = np.vstack(output_img).astype(np.uint8)
@@ -234,4 +242,3 @@ class Visualizer(object):
     def _visual_normal(self, normal):
         show_normal = (1 + normal) / 2 * 255
         return show_normal
-

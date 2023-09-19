@@ -3,10 +3,122 @@ train_dataset:
     is_fixK: v2
     multi_out_scale: null
 
-
 model:
   params:
     image_size: [192, 640]
+  
+losses:
+  param_group:
+    _optim: options/_base/optimizers/adam09.yaml
+    optim:
+      type: AdamW
+      lr: 0.0002
+      params:
+        weight_decay: 0.00005
+      sched:
+        type: Step
+        params:
+          milestones: [40]  
+    loss_terms:
+      photo_auto_min-0:
+        type: MD2_PhotoLoss
+        rate: 0.590
+        name: photo_auto_min-0
+        args:
+          preds_n: ['proj_img_-1_0_{}',
+                    'proj_img_1_0_{}']
+          idents_n: [color_-1,
+                    color_1]
+          target_n: color_{}
+      photo_auto_min-1:
+        type: MD2_PhotoLoss
+        rate: 0.656
+        args:
+          preds_n: ['proj_img_-1_1_{}',
+                    'proj_img_1_1_{}']
+          idents_n: [color_-1,
+                    color_1]
+          target_n: color_{}
+      photo_auto_min-2:
+        type: MD2_PhotoLoss
+        rate: 0.729
+        args:
+          preds_n: ['proj_img_-1_2_{}',
+                    'proj_img_1_2_{}']
+          idents_n: [color_-1,
+                    color_1]
+          target_n: color_{}
+      photo_auto_min-3:
+        type: MD2_PhotoLoss
+        rate: 0.81
+        args:
+          preds_n: ['proj_img_-1_3_{}',
+                    'proj_img_1_3_{}']
+          idents_n: [color_-1,
+                    color_1]
+          target_n: color_{}
+      photo_auto_min-4:
+        type: MD2_PhotoLoss
+        rate: 0.9
+        args:
+          preds_n: ['proj_img_-1_4_{}',
+                    'proj_img_1_4_{}']
+          idents_n: [color_-1,
+                    color_1]
+          target_n: color_{}
+      photo_auto_min-5:
+        type: MD2_PhotoLoss
+        rate: 1
+        args:
+          preds_n: ['proj_img_-1_5_{}',
+                    'proj_img_1_5_{}']
+          idents_n: [color_-1,
+                    color_1]
+          target_n: color_{}
+      smooth-0:
+        type: SmoothLoss
+        rate: 0.000590
+        args:
+          pred_n: disp_0_{}
+          image_n: color_{}
+          relative_smo: True
+      smooth-1:
+        type: SmoothLoss
+        rate: 0.000656
+        args:
+          pred_n: disp_1_{}
+          image_n: color_{}
+          relative_smo: True
+      smooth-2:
+        type: SmoothLoss
+        rate: 0.000729
+        args:
+          pred_n: disp_2_{}
+          image_n: color_{}
+          relative_smo: True
+      smooth-3:
+        type: SmoothLoss
+        rate: 0.00081
+        args:
+          pred_n: disp_3_{}
+          image_n: color_{}
+          relative_smo: True
+      smooth-4:
+        type: SmoothLoss
+        rate: 0.0009
+        args:
+          pred_n: disp_4_{}
+          image_n: color_{}
+          relative_smo: True
+      smooth-5:
+        type: SmoothLoss
+        rate: 0.001
+        args:
+          pred_n: disp_5_{}
+          image_n: color_{}
+          relative_smo: True
+
+pred_size: [192, 640]
 
 visual:
   type:

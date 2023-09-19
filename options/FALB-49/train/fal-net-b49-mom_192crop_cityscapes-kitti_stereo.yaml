@@ -1,26 +1,99 @@
+train_dataset:
+  - type: CityscapesColorDataset
+    params:
+      split_file: data_splits/cityscapes/train_extra_stereo_list.txt
+      crop_coords: [160, 64, 736, 1984]
+      full_size: [375, 1242]
+      patch_size: [192, 640]
+      normalize_params: [0.411, 0.432, 0.45]
+      flip_mode: img
+      load_KTmatrix: False
+      load_disp: False
+      load_semantic: False
+      fuse_kitti: True
+  - type: KITTIColorDepthDataset
+    params:
+      split_file: data_splits/kitti/train_list.txt
+      full_size: null
+      patch_size: [192, 640]
+      random_resize: True
+      normalize_params: [0.411, 0.432, 0.45]
+      flip_mode: img
+      color_aug: True
+      output_frame: ['o']
+      multi_out_scale: null
+      load_KTmatrix: False
+      load_depth: False
+      load_depthhints: False
+      is_fixK: True
+      stereo_test: False
+      jpg_test: False
+      improved_test: False
+
+val_dataset:
+  params:
+    full_size: null
+
 model:
   params:
     mom_module: True
 
-loss:
-  types:
-    - type: SmoothLoss
-      rate: 0.0016
-      name: smooth
-      args:
-        pred_n: disp_{}
-        image_n: color_{}
-        gamma_rate: 2
-        more_kernel: True
-        gray_img: True
-    - type: PhotoLoss
-      rate: 1
-      mask: ff_mask_{}
-      name: depth-ff
-      args:
-        pred_n: depth_{}
-        target_n: depth_ff_{}
-        l1_rate: 1
+losses:
+  param_group1:
+    loss_terms: {}
+  param_group2:
+    optim:
+      lr: 0.00005
+    loss_terms:
+      photo_l1:
+        type: PhotoLoss
+        rate: 1
+        args:
+          pred_n: synth_img_{}
+          target_n: color_{}_aug
+          l1_rate: 1
+          other_side: True
+      perceptual-1:
+        type: PhotoLoss
+        rate: 0.01
+        args:
+          pred_n: synth_feats_0_{}
+          target_n: raw_feats_0_{}
+          l1_rate: 0
+          l2_rate: 1
+      perceptual-2:
+        type: PhotoLoss
+        rate: 0.01
+        args:
+          pred_n: synth_feats_1_{}
+          target_n: raw_feats_1_{}
+          l1_rate: 0
+          l2_rate: 1
+      perceptual-3:
+        type: PhotoLoss
+        rate: 0.01
+        args:
+          pred_n: synth_feats_2_{}
+          target_n: raw_feats_2_{}
+          l1_rate: 0
+          l2_rate: 1
+      smooth:
+        type: SmoothLoss
+        rate: 0.0016
+        args:
+          pred_n: disp_{}
+          image_n: color_{}
+          gamma_rate: 2
+          more_kernel: True
+          gray_img: True
+      depth-ff:
+        type: PhotoLoss
+        rate: 1
+        mask: ff_mask_{}
+        args:
+          pred_n: depth_{}
+          target_n: depth_ff_{}
+          l1_rate: 1
 
 visual:
   type:
@@ -43,4 +116,5 @@ visual:
           [mask_s, mask_o],
           [depth-ff/s, depth-ff/o]]
 
-_base: options/FALB-49/train/fal-net-b49_192crop_cityscapes-kitti_stereo.yaml
+_val: options/_base/datasets/kitti/test_384.yaml
+_base: options/_base/networks/fal_net.yaml

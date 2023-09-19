@@ -83,6 +83,11 @@ parser.add_argument('--metric_name',
                     nargs='+',
                     default=['depth_kitti'],
                     help='metric type')
+parser.add_argument('--disable_metric',
+                    dest='disable_metric',
+                    action='store_true',
+                    default= False,
+                    help='disable metric')
 
 parser.add_argument('--precompute_path',
                     default=None,
@@ -117,6 +122,7 @@ def evaluate():
     device = torch.device('cuda')
     seed = 2021
     torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     np.random.seed(seed)
     random.seed(seed)
@@ -149,8 +155,8 @@ def evaluate():
     else:
         print('->Use pt files in ' + opts.precompute_path)
 
-    metric_func = Metric(opts.metric_name, None)
-
+    if not opts.disable_metric:
+        metric_func = Metric(opts.metric_name, None)
 
     # Initialize the output folder
     if opts.visual_list is not None:
@@ -190,10 +196,10 @@ def evaluate():
                 if isinstance(ipt, torch.Tensor):
                     inputs[ipt_key] = ipt.to(device, non_blocking=True)
             if not opts.precompute_path:
-                outputs = network(inputs, is_train=False)
+                outputs = network.inference_forward(inputs, is_train=False)
                 if opts.godard_post_process or opts.simple_flip_post_process:
                     inputs['color_s'] = torch.flip(inputs['color_s'], dims=[3])
-                    flip_outputs = network(inputs, is_train=False)
+                    flip_outputs = network.inference_forward(inputs, is_train=False)
                     fflip_depth = torch.flip(flip_outputs[('depth', 's')],
                                              dims=[3])
                     if opts.godard_post_process:
@@ -214,7 +220,7 @@ def evaluate():
                                              scale_factor=up_fac,
                                              mode='bilinear',
                                              align_corners=True)
-                    flip_outputs = network(inputs, is_train=False)
+                    flip_outputs = network.inference_forward(inputs, is_train=False)
                     flip_depth = flip_outputs[('depth', 's')]
                     flip_depth = up_fac * F.interpolate(flip_depth,
                                                            size=(H, W),
@@ -235,7 +241,8 @@ def evaluate():
                 outputs[('depth',
                          's')] = torch.load(pt_path).to(inputs['depth'])
 
-            metric_func.update_metric(outputs, inputs)
+            if not opts.disable_metric:
+                metric_func.update_metric(outputs, inputs)
 
             if opts.visual_list is not None and inputs['file_info'][0][
                     0] in visual_list:
@@ -256,10 +263,11 @@ def evaluate():
             print('{}/{}'.format(idx, test_data_num), end='\r')
             idx += 1
         print('{}/{}'.format(idx, test_data_num))
-    info_line, err_line = metric_func.get_metric_output(test_mode=True)
-
-    print(info_line)
-    print(err_line)
+    
+    if not opts.disable_metric:
+        info_line, err_line = metric_func.get_metric_output(test_mode=True)
+        print(info_line)
+        print(err_line)
 
 if __name__ == '__main__':
     evaluate()

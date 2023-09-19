@@ -4,6 +4,40 @@ train_dataset:
     is_fixK: v2
     load_depthhints: True
 
+losses:
+  param_group:
+    _optim: options/_base/optimizers/adam09.yaml
+    loss_terms:
+      photo_epcdepth:
+        type: EPCDepth_PhotoLoss
+        rate: 1
+        name: photo_epcdepth
+        args:
+          target_n: color_{}
+          preds_n: ['synth_0_{}',
+                    'synth_1_{}',
+                    'synth_2_{}',
+                    'synth_3_{}',
+                    'synth_4_{}',
+                    'synth_5_{}',
+                    'synth_6_{}',
+                    'synth_7_{}',
+                    'synth_8_{}',
+                    'synth_9_{}',]
+          pred_depths_n: ['depth_0_{}',
+                          'depth_1_{}',
+                          'depth_2_{}',
+                          'depth_3_{}',
+                          'depth_4_{}',
+                          'depth_5_{}',
+                          'depth_6_{}',
+                          'depth_7_{}',
+                          'depth_8_{}',
+                          'depth_9_{}']
+          hints_n: synth_hints_{}
+          hints_depth: hints_{}
+          ident_n: color_o
+
 visual:
   type:
     color_s: img

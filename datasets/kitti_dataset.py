@@ -293,7 +293,7 @@ class KITTIColorDepthDataset(data.Dataset):
                 *self.DATA_NAME_DICT['seg_{}'.format(data_side)])
             seg_l_path = seg_l_path.replace(
                 self.dataset_dir,
-                self.dataset_dir + '/segmentation').replace('/data', '')
+                self.dataset_dir + '/segmentation').replace('data/', '')
             seg_l = get_input_img(seg_l_path, False)
             seg_copy_l = np.array(seg_l.copy())
             for k in np.unique(seg_l):
@@ -306,7 +306,7 @@ class KITTIColorDepthDataset(data.Dataset):
                     *self.DATA_NAME_DICT['seg_{}'.format(oside)])
                 seg_r_path = seg_r_path.replace(
                     self.dataset_dir,
-                    self.dataset_dir + '/segmentation').replace('/data', '')
+                    self.dataset_dir + '/segmentation').replace('data/', '')
                 seg_r = get_input_img(seg_r_path, False)
                 seg_copy_r = np.array(seg_r.copy())
                 for k in np.unique(seg_r):
@@ -331,7 +331,7 @@ class KITTIColorDepthDataset(data.Dataset):
                     *self.DATA_NAME_DICT['hints_{}'.format(data_side)])
                 hints_l_path = hints_l_path.replace(
                     self.dataset_dir,
-                    self.dataset_dir + '/depth_hints').replace('/data', '')
+                    self.dataset_dir + '/depth_hints').replace('data/', '')
                 hints_depth_l = torch.from_numpy(np.load(hints_l_path))
                 # 0.058 = 0.58 (K[0, 0]) * 0.1 (baseline)
                 inputs['hints_s'] = 5.4 * hints_depth_l
@@ -343,7 +343,7 @@ class KITTIColorDepthDataset(data.Dataset):
                         *self.DATA_NAME_DICT['hints_{}'.format(oside)])
                     hints_r_path = hints_r_path.replace(
                         self.dataset_dir,
-                        self.dataset_dir + '/depth_hints').replace('/data', '')
+                        self.dataset_dir + '/depth_hints').replace('data/', '')
                     hints_depth_r = torch.from_numpy(np.load(hints_r_path))
                     inputs['hints_o'] = 5.4 * hints_depth_r
                     # inputs['hints_o'] = 0.058 / (hints_depth_r +

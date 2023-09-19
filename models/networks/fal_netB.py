@@ -7,14 +7,14 @@ from torchvision.models.vgg import vgg19
 
 from models.backbones.residualconv import Residual_Conv
 from models.backbones.resnet import ResNet_Backbone
-from models.base_net import Base_of_Network
+from models.base_model import Base_of_Model
 from models.decoders.upsample import UpSample_Layers
 from models.decoders.upsample_v2 import UpSample_Layers_v2
 from utils import platform_manager
 
 
 @platform_manager.MODELS.add_module
-class FAL_NetB(Base_of_Network):
+class FAL_NetB(Base_of_Model):
     def _initialize_model(
         self,
         out_num=49,
@@ -116,104 +116,151 @@ class FAL_NetB(Base_of_Network):
         else:
             self.loaded_flag = True
 
-    def forward(self, inputs, is_train=True):
-        self.inputs = inputs
-        outputs = {}
-        if is_train:
-            losses = {}
-            losses['loss'] = 0
-            if not self.loaded_flag:
-                self.fix_network['enc'].load_state_dict(
-                    self.convblocks['enc'].state_dict().copy())
-                self.fix_network['dec'].load_state_dict(
-                    self.convblocks['dec'].state_dict().copy())
-                self.loaded_flag = True
+    def forward(self, x, outputs, **kargs):
+        if self.raw_fal_arch:
+            B, C, H, W = x.shape
+            flow = torch.ones(B, 1, H, W).type(x.type())
+            flow[:, 0, :, :] = self.max_disp * flow[:, 0, :, :] / 100
+            features = self.convblocks['enc'](x, flow)
+        else:
+            features = self.convblocks['enc'](x)
 
-            directs = self.inputs['direct']
-            directs = directs.unsqueeze(1).unsqueeze(1).unsqueeze(1)
+        out_volume = self.convblocks['dec'](features, x.shape)
+        d_volume = out_volume.unsqueeze(1)
+
+        p_volume = self._get_probvolume_from_dispvolume(d_volume)
+        pred_disp = self._get_disp_from_probvolume(p_volume)
+        pred_depth = self._get_depth_from_disp(pred_disp)
+        outputs[('depth', 's')] = pred_depth
+
+        if self.is_train:
+            outputs['d_volume'] = d_volume
+            outputs['p_volume'] = p_volume
+            outputs['disp'] = pred_disp
+            outputs['depth'] = pred_depth
+
+        return pred_depth, outputs
+
+    def _preprocess_inputs(self):
+        if self.is_train:
+            t_side = self.train_sides[self.now_group_idx]
+            input_img = self.inputs['color_{}_aug'.format(t_side)].clone()
+
+            if t_side == 'o':
+                input_img = torch.flip(input_img, dims=[3])
+        
+        else:
+            input_img = self.inputs['color_s']
+        
+        return input_img
+
+    def _postprocess_outputs(self, outputs):
+        loss_sides = self.train_sides
+        if not self.loaded_flag:
+            enc_dict = {k: v
+                for k, v in self.convblocks['enc'].state_dict().copy().items()
+                if k in self.fix_network['enc'].state_dict()}
+            self.fix_network['enc'].load_state_dict(
+                 enc_dict)
+            dec_dict = {k: v
+                for k, v in self.convblocks['dec'].state_dict().copy().items()
+                if k in self.fix_network['dec'].state_dict()}
+            self.fix_network['dec'].load_state_dict(
+                dec_dict)
+            self.loaded_flag = True
+        
+        directs = self.inputs['direct']
+        directs = directs.unsqueeze(1).unsqueeze(1).unsqueeze(1)
+        
+        t_side = self.train_sides[self.now_group_idx]
+        oside = 'o' if t_side == 's' else 's'
+        # process inputs and outputs
+        t_img_aug = self.inputs['color_{}_aug'.format(t_side)]
+        if t_side == 'o':
+            outputs['d_volume_{}'.format(t_side)] \
+                = torch.flip(outputs.pop('d_volume'), dims=[3])
+            outputs['disp_{}'.format(t_side)] \
+                = torch.flip(outputs.pop('disp'), dims=[3])
+            outputs['p_volume_{}'.format(t_side)] \
+                =  torch.flip(outputs.pop('p_volume').detach(), dims=[3])
+            outputs['depth_{}'.format(t_side)] \
+                = torch.flip(outputs.pop('depth'), dims=[3])
+        else:
+            outputs['d_volume_{}'.format(t_side)] = outputs.pop('d_volume')
+            outputs['disp_{}'.format(t_side)] = outputs.pop('disp')
+            outputs['p_volume_{}'.format(t_side)] \
+                = outputs.pop('p_volume').detach()
+            outputs['depth_{}'.format(t_side)] = outputs.pop('depth')
+    
+        # generate the train side disparity
+        d_volume = outputs['d_volume_{}'.format(t_side)]
+        w_d_volume = self.transformer[oside]\
+            .get_warped_volume(d_volume, directs)
+        w_p_volume = self._get_probvolume_from_dispvolume(w_d_volume)
+        # biuld the outputs
+        outputs['w_p_volume_{}'.format(t_side)] = w_p_volume.detach()
+        if self.mom_module:
+            with torch.no_grad():
+                if t_side == 's':
+                    t_img_aug_f = torch.flip(t_img_aug, [3])
+                else:
+                    t_img_aug_f = t_img_aug
+                if self.raw_fal_arch:
+                    B, C, H, W = t_img_aug_f.shape
+                    flow = torch.ones(B, 1, H, W).type(t_img_aug_f.type())
+                    flow[:, 0, :, :] = self.max_disp * flow[:, 0, :, :] / 100
+                    x_f = t_img_aug_f
+                else:
+                    x_f = t_img_aug_f / 0.225
+                    flow = None
+                features_f = self.fix_network['enc'](x_f, flow)
+                raw_volume_f = self.fix_network['dec'](
+                    features_f, t_img_aug_f.shape)
+                d_volume_f = raw_volume_f.unsqueeze(1)
+                p_volume_f = self._get_probvolume_from_dispvolume(
+                    d_volume_f)
+                pred_disp_f = self._get_disp_from_probvolume(
+                    p_volume_f, directs)
+                pred_depth_f = self._get_depth_from_disp(pred_disp_f)
+                if t_side == 's':
+                    pred_depth_ff = torch.flip(pred_depth_f, [3])
+                else:
+                    pred_depth_ff = pred_depth_f
+                outputs['disp_f_{}'.format(t_side)] = pred_disp_f
+                outputs['depth_ff_{}'.format(
+                    t_side)] = pred_depth_ff
+                mask = torch.ones_like(pred_depth_ff)
+                mask = mask / pred_depth_ff.max()
+                outputs['ff_mask_{}'.format(oside)] = mask
+
+        # generate the synthetic image in right side
+        # named side but its synthesized the image of other side
+        w_img = self.transformer[oside]\
+            .get_warped_frame(t_img_aug, directs)
+        synth_img = (w_p_volume * w_img).sum(dim=2)
+        outputs['synth_img_{}'.format(t_side)] = synth_img
+
+        # compute the occlusion mask
+        if self.mom_module and t_side == self.train_sides[-1]:
             for train_side in self.train_sides:
-                # oside is used to select the disparity transformer
                 oside = 'o' if train_side == 's' else 's'
-                # process inputs
-                t_img_aug = self.inputs['color_{}_aug'.format(train_side)]
+                p_volume = outputs['p_volume_{}'.format(train_side)]
+                cyc_p_volume = self.transformer[oside]\
+                    .get_warped_volume(p_volume, directs)
+                occ_mask1 = cyc_p_volume.sum(dim=2)
+                w_p_volume = outputs['w_p_volume_{}'.format(oside)]
+                cyc_w_p_volume = self.transformer[oside]\
+                    .get_warped_volume(w_p_volume, directs)
+                occ_mask2 = cyc_w_p_volume.sum(dim=2)
+                occ_mask = (occ_mask1 * occ_mask2).clamp(0, 1)
+                outputs['mask_{}'.format(train_side)] = occ_mask
+                outputs['inv_mask_{}'.format(train_side)] = (1 - occ_mask)
+                outputs['ff_mask_{}'.format(oside)] = (
+                    1 -
+                    occ_mask) * outputs['ff_mask_{}'.format(train_side)]
 
-                # generate the train side disparity
-                raw_volume = self._get_dispvolume_from_img(train_side)
-                d_volume = raw_volume.unsqueeze(1)
-
-                p_volume = self._get_probvolume_from_dispvolume(d_volume)
-                pred_disp = self._get_disp_from_probvolume(p_volume, directs)
-                w_d_volume = self.transformer[oside]\
-                    .get_warped_volume(d_volume, directs)
-                w_p_volume = self._get_probvolume_from_dispvolume(w_d_volume)
-                # biuld the outputs
-                outputs['disp_{}'.format(train_side)] = pred_disp
-                outputs['p_volume_{}'.format(train_side)] = p_volume.detach()
-                outputs['w_p_volume_{}'.format(
-                    train_side)] = w_p_volume.detach()
-                if self.mom_module:
-                    outputs['depth_{}'.format(
-                        train_side)] = self._get_depth_from_disp(pred_disp)
-                    with torch.no_grad():
-                        if train_side == 's':
-                            t_img_aug_f = torch.flip(t_img_aug, [3])
-                        else:
-                            t_img_aug_f = t_img_aug
-                        if self.raw_fal_arch:
-                            B, C, H, W = t_img_aug_f.shape
-                            flow = torch.ones(B, 1, H, W).type(t_img_aug_f.type())
-                            flow[:, 0, :, :] = self.max_disp * flow[:, 0, :, :] / 100
-                            x_f = t_img_aug_f
-                        else:
-                            x_f = t_img_aug_f / 0.225
-                            flow = None
-                        features_f = self.fix_network['enc'](x_f, flow)
-                        raw_volume_f = self.fix_network['dec'](
-                            features_f, t_img_aug_f.shape)
-                        d_volume_f = raw_volume_f.unsqueeze(1)
-                        p_volume_f = self._get_probvolume_from_dispvolume(
-                            d_volume_f)
-                        pred_disp_f = self._get_disp_from_probvolume(
-                            p_volume_f, directs)
-                        pred_depth_f = self._get_depth_from_disp(pred_disp_f)
-                        if train_side == 's':
-                            pred_depth_ff = torch.flip(pred_depth_f, [3])
-                        else:
-                            pred_depth_ff = pred_depth_f
-                        outputs['disp_f_{}'.format(train_side)] = pred_disp_f
-                        outputs['depth_ff_{}'.format(
-                            train_side)] = pred_depth_ff
-                        mask = torch.ones_like(pred_depth_ff)
-                        mask = mask / pred_depth_ff.max()
-                        outputs['ff_mask_{}'.format(oside)] = mask
-
-                # generate the synthetic image in right side
-                # named side but its synthesized the image of other side
-                w_img = self.transformer[oside]\
-                    .get_warped_frame(t_img_aug, directs)
-                synth_img = (w_p_volume * w_img).sum(dim=2)
-                outputs['synth_img_{}'.format(train_side)] = synth_img
-
-            # compute the occlusion mask
-            if self.mom_module:
-                for train_side in self.train_sides:
-                    oside = 'o' if train_side == 's' else 's'
-                    p_volume = outputs['p_volume_{}'.format(train_side)]
-                    cyc_p_volume = self.transformer[oside]\
-                        .get_warped_volume(p_volume, directs)
-                    occ_mask1 = cyc_p_volume.sum(dim=2)
-                    w_p_volume = outputs['w_p_volume_{}'.format(oside)]
-                    cyc_w_p_volume = self.transformer[oside]\
-                        .get_warped_volume(w_p_volume, directs)
-                    occ_mask2 = cyc_w_p_volume.sum(dim=2)
-                    occ_mask = (occ_mask1 * occ_mask2).clamp(0, 1)
-                    outputs['mask_{}'.format(train_side)] = occ_mask
-                    outputs['inv_mask_{}'.format(train_side)] = (1 - occ_mask)
-                    outputs['ff_mask_{}'.format(oside)] = (
-                        1 -
-                        occ_mask) * outputs['ff_mask_{}'.format(train_side)]
-
-            # extract features by vgg
+        # extract features by vgg
+        if t_side == self.train_sides[-1]:
             for train_side in self.train_sides:
                 oside = 'o' if train_side == 's' else 's'
                 raw_img = self.inputs['color_{}_aug'.format(oside)]
@@ -234,25 +281,8 @@ class FAL_NetB(Base_of_Network):
                     synthf_name = 'synth_feats_{}_{}'.format(
                         feat_idx, train_side)
                     outputs[synthf_name] = synth_feats[feat_idx]
-
-            # compute the losses
-            for train_side in self.train_sides:
-                self._compute_losses(outputs,
-                                     train_side,
-                                     losses,
-                                     add_loss=False)
-                self._add_final_losses(train_side, losses)
-            return outputs, losses
-
-        else:
-            raw_volume = self._get_dispvolume_from_img('s', aug='')
-            d_volume = raw_volume.unsqueeze(1)
-
-            p_volume = self._get_probvolume_from_dispvolume(d_volume)
-            pred_disp = self._get_disp_from_probvolume(p_volume)
-            pred_depth = self._get_depth_from_disp(pred_disp)
-            outputs[('depth', 's')] = pred_depth
-            return outputs
+        
+        return loss_sides, outputs
 
     def _get_dispvolume_from_img(self, side, aug='_aug'):
         input_img = self.inputs['color_{}{}'.format(side, aug)].clone()
@@ -291,7 +321,7 @@ class FAL_NetB(Base_of_Network):
         return raw_mask.clamp(0, 1)
 
     def _get_depth_from_disp(self, disp):
-        if 'disp_k' in self.inputs:
+        if self.inputs and 'disp_k' in self.inputs:
             k = self.inputs['disp_k'].unsqueeze(1).unsqueeze(1).unsqueeze(1)
         else:
             k = torch.tensor([721.54 * 0.54], dtype=torch.float)
@@ -306,6 +336,17 @@ class FAL_NetB(Base_of_Network):
             x = self.feat_net[block_idx](x)
             feats.append(x)
         return feats
+
+    def get_parameters(self):
+        if self.mom_module:
+            all_group = {}
+            all_group['param_group1'] = ([{'params':[], 'lr': 0}], 
+                                        self.forward_st_epochs['param_group1'])
+            all_group['param_group2'] = ([{'params': list(self.parameters())}], 
+                                        self.forward_st_epochs['param_group2'])
+            return all_group
+        else:
+            return {'param_group2': ([{'params': list(self.parameters())}], 0)}
 
 
 class Conv3x3(nn.Module):

@@ -4,14 +4,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from models.backbones.resnet import ResNet_Backbone
-from models.base_net import Base_of_Network
+from models.base_model import Base_of_Model
 from models.decoders.msfm_dec import R_MSFM6, R_MSFM3
 from models.decoders.pose import PoseDecoder
 from utils import platform_manager
 
 
 @platform_manager.MODELS.add_module
-class R_MSFM(Base_of_Network):
+class R_MSFM(Base_of_Model):
     def _initialize_model(
             self,
             encoder_layer=18,
@@ -55,55 +55,62 @@ class R_MSFM(Base_of_Network):
         self.projector = {}
         self.projector[0] = DepthProjector(image_size).to(self.device)
 
-    def forward(self, inputs, is_train=True):
-        self.inputs = inputs
-        outputs = {}
-        if is_train:
-            losses = {}
-            losses['loss'] = 0
-            train_side = 's'
+        self.clip_grad = 1
+    
+    def forward(self, x, outputs, **kargs):
+        features = self.net_module['encoder'](x)
+        disp_outputs = self.net_module['decoder'](features,
+                                                  x.shape)
 
-            x = (inputs['color_{}_aug'.format(train_side)] - 0.45) / 0.225
-            features = self.net_module['encoder'](x)
-            disp_outputs = self.net_module['decoder'](features,
-                                                      x.shape)
-
-            K = self.inputs['K']
-            inv_K = self.inputs['inv_K']
+        disp = disp_outputs[0]
+        _, pred_depth = self._disp2depth(disp)
+        if not self.mono_train:
+            pred_depth = pred_depth * 5.4         
+        pred = pred_depth
+        outputs[('depth', 's')] = pred_depth
+        
+        if self.is_train:
             if self.mono_train:
                 outputs.update(self._get_poses())
             for scale in range(len(disp_outputs)-1, -1, -1):
                 disp = disp_outputs[scale]
-                outputs['disp_{}_{}'.format(scale, train_side)] = disp
-                _, depth = self._disp2depth(disp)
-                for id_frame in self.data_mode:
-                    source_img = self.inputs[('color_{}'.format(id_frame))]
-                    if id_frame != 'o':
-                        T = outputs['T_{}'.format(id_frame)]
-                    else:
-                        T = inputs['T'].clone()
-                        T[:, 0, 3] = T[:, 0, 3] / 5.4
-                    projected_img, _ = self.projector[0](depth, inv_K, T, K,
-                                                         source_img, False)
-                    outputs['proj_img_{}_{}_{}'.format(
-                        id_frame, scale, train_side)] = projected_img
+                outputs['disp_{}'.format(scale)] = disp
+        self.output_disp_num = len(disp_outputs)
 
-            self._compute_losses(outputs, train_side, losses)
-            return outputs, losses
+        return pred, outputs
 
+    def _preprocess_inputs(self):
+        if self.is_train:
+            x = (self.inputs['color_s_aug'] - 0.45) / 0.225
         else:
-            x = (inputs['color_s'] - 0.45) / 0.225
-            features = self.net_module['encoder'](x)
-            disp_outputs = self.net_module['decoder'](features,
-                                                      x.shape)
-            
-            disp = disp_outputs[0]
-            _, pred_depth = self._disp2depth(disp)
-            if not self.mono_train:
-                pred_depth = pred_depth * 5.4         
-            outputs[('depth', 's')] = pred_depth
+            x = (self.inputs['color_s'] - 0.45) / 0.225
+        
+        return x
 
-            return outputs
+    def _postprocess_outputs(self, outputs):
+        K = self.inputs['K']
+        inv_K = self.inputs['inv_K']
+        loss_sides = ['s']
+        train_side = 's'
+
+        for scale in range(self.output_disp_num-1, -1, -1):
+            outputs['disp_{}_{}'.format(scale, train_side)] \
+                = outputs.pop('disp_{}'.format(scale))
+            disp = outputs['disp_{}_{}'.format(scale, train_side)]
+            _, depth = self._disp2depth(disp)
+            for id_frame in self.data_mode:
+                source_img = self.inputs[('color_{}'.format(id_frame))]
+                if id_frame != 'o':
+                    T = outputs['T_{}'.format(id_frame)]
+                else:
+                    T = self.inputs['T'].clone()
+                    T[:, 0, 3] = T[:, 0, 3] / 5.4
+                projected_img, _ = self.projector[0](depth, inv_K, T, K,
+                                                        source_img, False)
+                outputs['proj_img_{}_{}_{}'.format(
+                    id_frame, scale, train_side)] = projected_img
+        
+        return loss_sides, outputs
 
     def _get_poses(self):
         outputs = {}

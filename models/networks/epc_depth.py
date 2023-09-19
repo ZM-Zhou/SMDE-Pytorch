@@ -4,17 +4,15 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision.models.resnet import resnet18
-from torchvision.models.vgg import vgg19
 
 import utils.platform_manager as platform_manager
 from models.backbones.resnet import ResNet_Backbone
-from models.base_net import Base_of_Network
+from models.base_model import Base_of_Model
 from models.decoders.epcdepth_rsu import RSUDecoder
 
 
 @platform_manager.MODELS.add_module
-class EPCDepth_Net(Base_of_Network):
+class EPCDepth_Net(Base_of_Model):
     def _initialize_model(self,
                           backbone='Res50',
                           max_depth=100,
@@ -47,48 +45,52 @@ class EPCDepth_Net(Base_of_Network):
 
         self._networks = nn.ModuleList(list(self.net_modules.values()))
 
-    def forward(self, inputs, is_train=True):
-        self.inputs = inputs
-        outputs = {}
-        if is_train:
-            losses = {}
-            losses['loss'] = 0
+    def forward(self, x, outputs, **kargs):
+        features = self.net_modules['enc'](x)
+        norm_disps = self.net_modules['dec'](features)
+        _, pred_depth = self._disp_to_depth(norm_disps[0])
+        
+        outputs[('depth', 's')] = pred_depth * 5.4
+        outputs['norm_disps_s'] = norm_disps
+        pred = pred_depth * 5.4
+
+        return pred, outputs
+
+    def _preprocess_inputs(self):
+        if self.is_train:
             if self.data_graft:
                 self._do_data_graft()
-
-            img_h, img_w = self.inputs['color_s_aug'].shape[2:]
-            input_image = (self.inputs['color_s_aug'] - 0.45) / 0.225
-            features = self.net_modules['enc'](input_image)
-            norm_disps = self.net_modules['dec'](features)
-
-            sou_img = self.inputs['color_o']
-            K =self.inputs['K']
-            T = inputs['T'].clone()
-            T[:, 0, 3] = T[:, 0, 3] / 5.4
-            for i in range(len(norm_disps)):
-                pred_disp = F.interpolate(norm_disps[i], [img_h, img_w],
-                                          mode='bilinear',
-                                          align_corners=False)
-                _, pred_depth = self._disp_to_depth(pred_disp)
-                outputs['disp_{}_s'.format(i)] = pred_disp.detach()
-                outputs['depth_{}_s'.format(i)] = pred_depth * 5.4
-
-                outputs['synth_{}_s'.format(i)] = self._generate_warp_image(
-                    sou_img, K, T, pred_depth)
-           
-            outputs['synth_hints_s'] = self._generate_warp_image(
-                sou_img, K, inputs['T'], inputs['hints_s'])
-
-            self._compute_losses(outputs, 's', losses, add_loss=True)
-            return outputs, losses
-
+            aug = '_aug'
         else:
-            input_image = (self.inputs['color_s'] - 0.45) / 0.225
-            features = self.net_modules['enc'](input_image)
-            norm_disps = self.net_modules['dec'](features)
-            _, pred_depth = self._disp_to_depth(norm_disps[0])
-            outputs[('depth', 's')] = pred_depth * 5.4
-            return outputs
+            aug = ''
+
+        x = (self.inputs['color_s{}'.format(aug)] - 0.45) / 0.225
+        return x
+
+    def _postprocess_outputs(self, outputs):
+        loss_sides = ['s']
+        img_h, img_w = self.inputs['color_s_aug'].shape[2:]
+        sou_img = self.inputs['color_o']
+        K =self.inputs['K']
+        T = self.inputs['T'].clone()
+        T[:, 0, 3] = T[:, 0, 3] / 5.4
+
+        norm_disps = outputs['norm_disps_s']
+        for i in range(len(norm_disps)):
+            pred_disp = F.interpolate(norm_disps[i], [img_h, img_w],
+                                        mode='bilinear',
+                                        align_corners=False)
+            _, pred_depth = self._disp_to_depth(pred_disp)
+            outputs['disp_{}_s'.format(i)] = pred_disp.detach()
+            outputs['depth_{}_s'.format(i)] = pred_depth * 5.4
+
+            outputs['synth_{}_s'.format(i)] = self._generate_warp_image(
+                sou_img, K, T, pred_depth)
+        
+        outputs['synth_hints_s'] = self._generate_warp_image(
+            sou_img, K, self.inputs['T'], self.inputs['hints_s'])
+    
+        return loss_sides, outputs
 
     def _do_data_graft(self):
         rand_w = random.randint(0, 4) / 5

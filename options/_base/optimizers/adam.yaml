@@ -1,0 +1,9 @@
+type: Adam
+lr: 0.0001
+params:
+  betas: [0.5, 0.999]
+sched:
+  type: Step
+  params:
+    milestones: [30, 40]
+    gamma: 0.5

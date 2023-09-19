@@ -5,13 +5,13 @@ import torch.nn.functional as F
 import torchvision.models as models
 
 from models.backbones.resnet import ResNet_Backbone
-from models.base_net import Base_of_Network
+from models.base_model import Base_of_Model
 from models.decoders.upsample_aspp import UpSample_withDenseASPP
 from utils import platform_manager
 
 
 @platform_manager.MODELS.add_module
-class OCFD_Net(Base_of_Network):
+class OCFD_Net(Base_of_Model):
     """Network for learning occlusion-aware coarse-to-fine depth map.
 
     Args:
@@ -104,139 +104,120 @@ class OCFD_Net(Base_of_Network):
 
         self.train_sides = ['s']
 
-    def forward(self, inputs, is_train=True):
-        self.inputs = inputs
-        outputs = {}
-        if is_train:
-            losses = {}
-            losses['loss'] = 0
-
-            directs = self.inputs['direct']
-            directs = directs.unsqueeze(1).unsqueeze(1).unsqueeze(1)
-            for train_side in self.train_sides:
-                # oside is used to select the disparity transformer
-                oside = 'o'
-                # process inputs
-                t_img_aug = self.inputs['color_{}_aug'.format(train_side)]
-                s_img_aug = self.inputs['color_{}_aug'.format(oside)]
-                T = inputs['T']
-
-                # generate the train side disparity
-                raw_volume = self._get_dispvolume_from_img(train_side)
-                d_volume = raw_volume[:, :self.out_num, ...].unsqueeze(1)
-                extra_normal_depth = torch.sigmoid(
-                    raw_volume[:, self.out_num, ...].unsqueeze(1))
-
-                p_volume = self._get_probvolume_from_dispvolume(d_volume)
-                pred_disp = self._get_disp_from_probvolume(p_volume, directs)
-                pred_depth = self._trans_depth_and_disp(pred_disp)
-
-                w_d_volume = self.transformer[oside]\
-                    .get_warped_volume(d_volume, directs)
-                w_p_volume = self._get_probvolume_from_dispvolume(w_d_volume)
-                # biuld the outputs
-                outputs['disp_{}'.format(train_side)] = pred_disp
-                outputs['depth_{}'.format(train_side)] = pred_depth
-
-                # generate the synthetic image in other side
-                # named side but its synthesized the image of other side
-                w_img = self.transformer[oside]\
-                    .get_warped_frame(t_img_aug, directs)
-                synth_img = (w_p_volume * w_img).sum(dim=2)
-                outputs['synth_img_{}'.format(train_side)] = synth_img
-
-                # compute the fine depth
-                residual_depth = self.fix_residual * (extra_normal_depth - 0.5)
-
-                fine_depth = (pred_depth.detach() + residual_depth).clamp(
-                    1e-3, 150)
-                fine_disp = self._trans_depth_and_disp(fine_depth)
-                outputs['residual_depth_{}'.format(train_side)] = (
-                    extra_normal_depth - 0.5)
-                outputs['fine_disp_{}'.format(train_side)] = fine_disp
-
-                # compute the reprojction by depth
-                inv_K = inputs['inv_K']
-                K = inputs['K']
-                source_img = self.inputs['color_{}'.format(oside)]
-                if self.pred_out:
-                    projected_img, blend_mask = self.transformer['proj'](
-                        pred_depth, inv_K, T, K, source_img, True)
-                else:
-                    projected_img, blend_mask = self.transformer['proj'](
-                        fine_depth, inv_K, T, K, source_img, True)
-                outputs['proj_img_{}'.format(train_side)] = projected_img
-                outputs['mask_{}'.format(train_side)] = blend_mask.detach()
-
-                # compute the occlusion mask
-                occ_mask = 1
-                if self.occ_mask_mode is not None:
-                    if 'v' in self.occ_mask_mode:
-                        ww_p_volume = self.transformer[train_side]\
-                            .get_warped_volume(w_p_volume.detach(), directs)
-                        warp_mask = ww_p_volume.sum(dim=2).clamp(0, 1)
-                        occ_mask = occ_mask * warp_mask.detach()
-                    if 'm' in self.occ_mask_mode:
-                        occ_mask1 = self.occ_computer[0].forward(
-                            pred_disp, T[:, 0, 3])
-                        occ_mask = occ_mask * occ_mask1.detach()
-                    outputs['mask_{}'.format(train_side)] = outputs[
-                        'mask_{}'.format(train_side)] * occ_mask
-                    outputs['smo_mask_{}'.format(train_side)] = 2 - outputs[
-                        'mask_{}'.format(train_side)]
-
-                # extract features by res18
-                raw_img = s_img_aug
-                synth_img = outputs['synth_img_{}'.format(train_side)]
-
-                with torch.no_grad():
-                    raw_feats = self._get_conv_feats_from_image(raw_img)
-                synth_feats = self._get_conv_feats_from_image(synth_img)
-
-                for feat_idx in range(3):
-                    rawf_name = 'raw_feats_{}_{}'.format(feat_idx, train_side)
-                    outputs[rawf_name] = raw_feats[feat_idx]
-                    synthf_name = 'synth_feats_{}_{}'.format(
-                        feat_idx, train_side)
-                    outputs[synthf_name] = synth_feats[feat_idx]
-
-            # compute the losses
-            for train_side in ['s']:
-                self._compute_losses(outputs,
-                                     train_side,
-                                     losses,
-                                     add_loss=False)
-                self._add_final_losses(train_side, losses)
-            return outputs, losses
-
-        else:
-            raw_volume = self._get_dispvolume_from_img('s', aug='')
-            d_volume = raw_volume[:, :self.out_num, ...].unsqueeze(1)
-            extra_normal_depth = torch.sigmoid(raw_volume[:, self.out_num,
-                                                          ...].unsqueeze(1))
-            p_volume = self._get_probvolume_from_dispvolume(d_volume)
-            pred_disp = self._get_disp_from_probvolume(p_volume)
-            if 'disp_k' in self.inputs:
-                pred_depth = self._trans_depth_and_disp(pred_disp)
-            else:
-                pred_depth = 401.55 / pred_disp * self.set_SCALE
-
-            d_weight = self.fix_residual
-            residual_depth = (extra_normal_depth - 0.5) * d_weight
-            fine_depth = (pred_depth + residual_depth).clamp(1e-3, 1e5)
-
-            if self.pred_out:
-                outputs[('depth', 's')] = pred_depth
-            else:
-                outputs[('depth', 's')] = fine_depth
-            
-            return outputs
-
-    def _get_dispvolume_from_img(self, side, aug='_aug'):
-        input_img = self.inputs['color_{}{}'.format(side, aug)]
-        x = input_img / 0.225
+    def forward(self, x, outputs, **kargs):
         features = self.convblocks['enc'](x)
-        return self.convblocks['dec'](features, input_img.shape)
+        raw_volume = self.convblocks['dec'](features, x.shape)
+        d_volume = raw_volume[:, :self.out_num, ...].unsqueeze(1)
+        extra_normal_depth = torch.sigmoid(raw_volume[:, self.out_num,
+                                                        ...].unsqueeze(1))
+        p_volume = self._get_probvolume_from_dispvolume(d_volume)
+        pred_disp = self._get_disp_from_probvolume(p_volume)
+        pred_depth = 401.55 / pred_disp * self.set_SCALE
+
+        d_weight = self.fix_residual
+        residual_depth = (extra_normal_depth - 0.5) * d_weight
+        fine_depth = (pred_depth + residual_depth).clamp(1e-3, 1e5)
+
+        if self.pred_out:
+            outputs[('depth', 's')] = pred_depth
+            pred = pred_depth
+        else:
+            outputs[('depth', 's')] = fine_depth
+            pred = fine_depth
+        
+        if self.is_train:
+            outputs['depth_s'] = pred_depth
+            outputs['fine_depth_s'] = fine_depth
+            outputs['d_volume_s'] = d_volume
+            outputs['disp_s'] = pred_disp
+            outputs['extra_normal_depth_s'] = extra_normal_depth
+    
+        return pred, outputs
+
+    def _preprocess_inputs(self):
+        if self.is_train:
+            aug = '_aug'
+        else:
+            aug = ''
+        x = self.inputs['color_s{}'.format(aug)] / 0.225
+        return x
+
+    def _postprocess_outputs(self, outputs):
+        inv_K = self.inputs['inv_K']
+        K = self.inputs['K']
+        T = self.inputs['T']
+        loss_sides = ['s']
+        train_side = 's'
+        oside = 'o'
+
+        t_img_aug = self.inputs['color_{}_aug'.format(train_side)]
+        s_img_aug = self.inputs['color_{}_aug'.format(oside)]
+        directs = self.inputs['direct']
+        directs = directs.unsqueeze(1).unsqueeze(1).unsqueeze(1)
+        
+        d_volume = outputs['d_volume_{}'.format(train_side)]
+        w_d_volume = self.transformer[oside]\
+            .get_warped_volume(d_volume, directs)
+        w_p_volume = self._get_probvolume_from_dispvolume(w_d_volume)
+
+        # generate the synthetic image in other side
+        # named side but its synthesized the image of other side
+        w_img = self.transformer[oside]\
+            .get_warped_frame(t_img_aug, directs)
+        synth_img = (w_p_volume * w_img).sum(dim=2)
+        outputs['synth_img_{}'.format(train_side)] = synth_img
+
+        source_img = self.inputs['color_{}'.format(oside)]
+        if self.pred_out:
+            pred_depth = outputs['depth_{}'.format(train_side)]
+            projected_img, blend_mask = self.transformer['proj'](
+                pred_depth, inv_K, T, K, source_img, True)
+        else:
+            fine_depth = outputs['fine_depth_{}'.format(train_side)]
+            extra_normal_depth = outputs['extra_normal_depth_{}'.format(train_side)]
+            projected_img, blend_mask = self.transformer['proj'](
+                fine_depth, inv_K, T, K, source_img, True)
+            fine_disp = self._trans_depth_and_disp(fine_depth)
+            outputs['residual_depth_{}'.format(train_side)] = (
+                extra_normal_depth - 0.5)
+            outputs['fine_disp_{}'.format(train_side)] = fine_disp
+        outputs['proj_img_{}'.format(train_side)] = projected_img
+        outputs['mask_{}'.format(train_side)] = blend_mask.detach()
+
+        # compute the occlusion mask
+        occ_mask = 1
+        if self.occ_mask_mode is not None:
+            if 'v' in self.occ_mask_mode:
+                ww_p_volume = self.transformer[train_side]\
+                    .get_warped_volume(w_p_volume.detach(), directs)
+                warp_mask = ww_p_volume.sum(dim=2).clamp(0, 1)
+                occ_mask = occ_mask * warp_mask.detach()
+            if 'm' in self.occ_mask_mode:
+                pred_disp = outputs['disp_{}'.format(train_side)]
+                occ_mask1 = self.occ_computer[0].forward(
+                    pred_disp, T[:, 0, 3])
+                occ_mask = occ_mask * occ_mask1.detach()
+            outputs['mask_{}'.format(train_side)] = outputs[
+                'mask_{}'.format(train_side)] * occ_mask
+            outputs['smo_mask_{}'.format(train_side)] = 2 - outputs[
+                'mask_{}'.format(train_side)]
+
+        # extract features by res18
+        raw_img = s_img_aug
+        synth_img = outputs['synth_img_{}'.format(train_side)]
+
+        with torch.no_grad():
+            raw_feats = self._get_conv_feats_from_image(raw_img)
+        synth_feats = self._get_conv_feats_from_image(synth_img)
+
+        for feat_idx in range(3):
+            rawf_name = 'raw_feats_{}_{}'.format(feat_idx, train_side)
+            outputs[rawf_name] = raw_feats[feat_idx]
+            synthf_name = 'synth_feats_{}_{}'.format(
+                feat_idx, train_side)
+            outputs[synthf_name] = synth_feats[feat_idx]
+
+        return loss_sides, outputs
 
     def _get_probvolume_from_dispvolume(self, volume):
         return F.softmax(volume, dim=2)

@@ -1,0 +1,9 @@
+_dataset:
+  type: KITTIColorStereoDataset
+  params:
+    split_file: data_splits/kitti_stereo2015/train_list.txt
+    full_size: [192, 640]
+    normalize_params: [0, 0, 0]
+    load_semantic: False
+    load_KTmatrix: False
+    stereo_test: False

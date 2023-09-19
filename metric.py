@@ -8,7 +8,7 @@ from torch.autograd import Variable
 
 
 def metric_depth(pred, gt, median_scale=False, kitti_mask=False,
-                 cityscapes_mask=False, min_depth=0, max_depth=80):
+                 cityscapes_mask=False, min_depth=0, max_depth=80, in_mask=None):
     _, _, h, w = gt.shape
     pred = torch.nn.functional.interpolate(pred, [h, w],
                                            mode='bilinear',
@@ -22,14 +22,25 @@ def metric_depth(pred, gt, median_scale=False, kitti_mask=False,
                 int(0.40810811 * h):int(0.99189189 * h),
                 int(0.03594771 * w):int(0.96405229 * w)] = 1
         mask = mask * crop_mask
+    # mask A in ManyDepth
     elif cityscapes_mask:
-        assert gt.shape[2] == 768 and gt.shape[3] == 2048
         mask = (gt > min_depth) & (gt < max_depth)
-        crop_mask = torch.zeros_like(mask)
-        crop_mask[:, :, 256:, 192:1856] = 1
-        mask = mask * crop_mask
+        if gt.shape[3] == 2048:
+            height_crop = gt.shape[2] - 512
+            crop_mask = torch.zeros_like(mask)
+            crop_mask[:, :, height_crop:, 192:1856] = 1
+            mask = mask * crop_mask
+        elif gt.shape[2] == 512 and gt.shape[3] == 1664:
+            pass 
+        else:
+            raise NotImplementedError
     else:
         mask = (gt > min_depth) & (gt < max_depth)
+    
+    if in_mask is not None:
+        in_mask = torch.nn.functional.interpolate(in_mask, [h, w],
+                                           mode='nearest')
+        mask = (mask * in_mask).to(torch.bool)
 
     gt = gt[mask].clamp(min_depth, max_depth)
     pred = pred[mask]
@@ -58,6 +69,23 @@ def metric_depth(pred, gt, median_scale=False, kitti_mask=False,
 
     return [abs_rel, sq_rel, rmse, rmse_log, a1, a2, a3, scale]
 
+def metric_disp(pred, gt):
+    _, _, h, w = gt.shape
+    disp_scale = w / pred.shape[3]
+    pred = torch.nn.functional.interpolate(pred, [h, w],
+                                           mode='bilinear',
+                                           align_corners=False)
+
+    mask = gt > 0
+    
+    gt = gt[mask]
+    pred = pred[mask] * disp_scale
+    abs_err = torch.abs(gt - pred)
+    rel_err = abs_err / gt
+    d1 = ((abs_err > 3) & (rel_err > 0.05)).float().mean()
+    epe = torch.mean(abs_err)
+
+    return [epe, d1 * 100]
 
 def metric_synth(pred, gt):
     # PSNR
@@ -253,7 +281,8 @@ class Metric(object):
                 or 'depth_ddad' in metric_name
                 or 'depth_ddad_mono' in metric_name
                 or 'depth_cityscapes_mono' in metric_name
-                or 'depth_cityscapes' in metric_name):
+                or 'depth_cityscapes' in metric_name
+                or 'depth_vkitti2' in metric_name):
             self.case_names += [
                 'abs_rel', 'sq_rel', 'rms', 'log_rms', 'a1', 'a2', 'a3', 'scale'
             ]
@@ -275,6 +304,11 @@ class Metric(object):
                 'abs_rel', 'sq_rel', 'rms', 'log_rms', 'log_10', 'a1', 'a2', 'a3'
             ]
             self.case_num += 8
+        if 'depth_kitti_stereo2015' in metric_name:
+            self.case_names += [
+                'abs_rel', 'sq_rel', 'rms', 'log_rms', 'a1', 'a2', 'a3', 'scale', 'EPE-all', 'D1-all'
+            ]
+            self.case_num += 10
 
         if best_compute == 'depth_kitti':
             self.best_names = [
@@ -315,16 +349,33 @@ class Metric(object):
 
         return [info_line, metric_line]
 
-    def update_metric(self, outputs, inputs):
+    def update_metric(self, outputs, inputs, name=None):
         res = []
         if 'depth_kitti' in self.metric_name:
-            pred = outputs[('depth', 's')]
+            if name is None:
+                pred = outputs[('depth', 's')]
+            else:
+                pred = outputs[name]
             gt = inputs['depth']
             res += metric_depth(pred, gt, kitti_mask=True)
         if 'depth_kitti_mono' in self.metric_name:
             pred = outputs[('depth', 's')]
             gt = inputs['depth']
             res += metric_depth(pred, gt, median_scale=True, kitti_mask=True)
+        if 'depth_kitti_stereo2015' in self.metric_name:
+            if name is None:
+                pred = outputs[('depth', 's')]
+            else:
+                pred = outputs[name]
+            gt = inputs['depth']
+            res += metric_depth(pred, gt)
+            
+            if name is None:
+                pred = outputs[('disp', 's')]
+            else:
+                pred = outputs[name.replace('depth', 'disp')]
+            gt = inputs['disp']
+            res += metric_disp(pred, gt)
         if 'depth_cityscapes' in self.metric_name:
             pred = outputs[('depth', 's')]
             gt = inputs['depth']
@@ -343,6 +394,11 @@ class Metric(object):
             gt = inputs['depth']
             res += metric_depth(pred, gt, median_scale=True, 
                                 min_depth=0, max_depth=200)
+        if 'depth_vkitti2' in self.metric_name:
+            pred = outputs[('depth', 's')]
+            gt = inputs['depth']
+            res += metric_depth(pred, gt, median_scale=False, 
+                                min_depth=0, max_depth=100)
         
         if 'synth' in self.metric_name:
             pred = outputs[('synth', 's')]
